@@ -3,26 +3,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
-
+    app:startDestination="@id/aveDex2">
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.example.avedex.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
-
+        android:id="@+id/aveDex2"
+        android:name="com.example.avedex.AveDex"
+        android:label="fragment_ave_dex"
+        tools:layout="@layout/fragment_ave_dex" >
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_aveDex2_to_birdDescription3"
+            app:destination="@id/birdDescription3" />
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.example.avedex.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
-
+        android:id="@+id/birdDescription3"
+        android:name="com.example.avedex.BirdDescription"
+        android:label="fragment_bird_description"
+        tools:layout="@layout/fragment_bird_description" />
+    <fragment
+        android:id="@+id/camera"
+        android:name="com.example.avedex.Camera"
+        android:label="fragment_camera"
+        tools:layout="@layout/fragment_camera" >
         <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            android:id="@+id/action_camera_to_birdRecognized2"
+            app:destination="@id/birdRecognized2" />
+        <action
+            android:id="@+id/action_camera_to_aveDex2"
+            app:destination="@id/aveDex2" />
+    </fragment>
+    <fragment
+        android:id="@+id/birdRecognized2"
+        android:name="com.example.avedex.BirdRecognized"
+        android:label="fragment_bird_recognized"
+        tools:layout="@layout/fragment_bird_recognized" >
+        <action
+            android:id="@+id/action_birdRecognized2_to_birdDescription3"
+            app:destination="@id/birdDescription3" />
     </fragment>
 </navigation>
