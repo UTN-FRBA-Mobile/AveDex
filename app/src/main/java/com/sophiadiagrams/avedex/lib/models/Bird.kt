@@ -1,5 +1,3 @@
 package com.sophiadiagrams.avedex.lib.models
 
-import android.graphics.Bitmap
-
-class Bird (val name:String, val image: String, val description: String)
+data class Bird(val name: String = "", val image: String = "", val description: String = "", val discoveryLocation: String = "Argentina", val discoveryTime: String = "23.01.2023")

@@ -15,22 +15,34 @@ import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInResult
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentLoginBinding
+import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
+import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 
 
 class LoginFragment : Fragment() {
 
+    companion object {
+        const val GOOGLE_SIGN_IN = 1903
+    }
+
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private lateinit var fb: FirebaseService
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,6 +56,7 @@ class LoginFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fb = FirebaseService(Firebase.auth, Firebase.firestore)
+        googleSignInClient = GoogleSignIn.getClient(requireContext(), getGSO())
     }
 
     override fun onStart() {
@@ -52,7 +65,6 @@ class LoginFragment : Fragment() {
         val currentUser = fb.auth.currentUser
         if (currentUser != null) {
             findNavController().navigate(R.id.action_loginFragment_to_cameraFragment)
-            Log.d("LOGIN", "user: ${currentUser.email}")
         }
     }
 
@@ -87,62 +99,48 @@ class LoginFragment : Fragment() {
     }
 
     private fun handleGoogleLogin() {
-        val a = requireActivity()
-        val oneTapClient = Identity.getSignInClient(a)
-
-        val signInRequest = BeginSignInRequest.builder()
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    // Your server's client ID, not your Android client ID.
-                    .setServerClientId("712370312423-2ie9esvtbu9sdhujt140mkhpvba3dvee.apps.googleusercontent.com")
-                    // Only show accounts previously used to sign in.
-                    .build()
-            )
-            .build()
-
-        oneTapClient.beginSignIn(signInRequest)
-            .addOnSuccessListener(a) { result ->
-                try {
-                    startIntentSenderForResult(
-                        result.pendingIntent.intentSender, 1,
-                        null, 0, 0, 0, null
-                    )
-                } catch (e: SendIntentException) {
-                    Log.e("TAG", "Couldn't start One Tap UI: ${e.localizedMessage}")
-                }
-            }
-            .addOnFailureListener(a) { e ->
-
-                // No saved credentials found. Launch the One Tap sign-up flow, or
-                // do nothing and continue presenting the signed-out UI.
-                Log.d("TAG", e.localizedMessage)
-            }
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, GOOGLE_SIGN_IN)
     }
 
+    private fun getGSO(): GoogleSignInOptions {
+        return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            1 -> {
-                try {
-                    val a = requireActivity()
-                    val oneTapClient = Identity.getSignInClient(a)
-                    val credential = oneTapClient.getSignInCredentialFromIntent(data)
-                    val idToken = credential.googleIdToken
-                    when {
-                        idToken != null -> {
-                            // Got an ID token from Google. Use it to authenticate
-                            // with Firebase.
-                            Log.d("TAG", "Got ID token.")
-                        }
-                        else -> {
-                            // Shouldn't happen.
-                            Log.d("TAG", "No ID token!")
+        if (requestCode == GOOGLE_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                val credential = GoogleAuthProvider.getCredential(account.idToken!!, null)
+                fb.auth.signInWithCredential(credential)
+                    .addOnCompleteListener(requireActivity()) {
+                        if (it.isSuccessful) {
+                            Log.d("LOGIN", "signInWithEmail:success")
+                            val user = User(
+                                uid = it.result.user?.uid ?: "",
+                                displayName = it.result.user?.displayName ?: "",
+                                email = it.result.user?.email ?: "",
+                                photoUrl = it.result.user?.photoUrl.toString()
+                            )
+                            fb.db.collection(FirebaseConstants.USERS_COLLECTION).document(user.uid)
+                                .set(user, SetOptions.merge())
+                            findNavController().navigate(R.id.action_loginFragment_to_cameraFragment)
+                        } else {
+                            throw Exception(it.exception)
                         }
                     }
-                } catch (e: ApiException) {
-                    // ...
-                }
+            } catch (e: ApiException) {
+                Log.d("LOGIN", "Google Login error: $e")
+                Toast.makeText(
+                    context, "Authentication failed.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

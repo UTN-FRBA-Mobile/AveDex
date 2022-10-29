@@ -13,4 +13,7 @@
     <string name="login__login_with_google_button">Or continue with Google</string>
     <string name="account_menu__open_avedex">Open AveDex</string>
     <string name="account_menu__sign_out">Sign Out</string>
+    <string name="avedex__image_content">Bird image</string>
+    <string name="avedex__header">Your Avedex</string>
+    <string name="bird_dialog__subtitle">Descubierto en</string>
 </resources>

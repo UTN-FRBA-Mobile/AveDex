@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.MenuRes
@@ -24,6 +25,7 @@ import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants.USERS_COLLECTION
 import com.sophiadiagrams.avedex.presentation.util.OnSwipeTouchListener
+import com.squareup.picasso.Picasso
 import io.fotoapparat.Fotoapparat
 import io.fotoapparat.log.logcat
 import io.fotoapparat.log.loggers
@@ -58,7 +60,6 @@ class CameraFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fb = FirebaseService(Firebase.auth, Firebase.firestore)
-        Log.d("camera_fragment_log1", "alalalalalalalal")
     }
 
     override fun onStart() {
@@ -67,28 +68,36 @@ class CameraFragment : Fragment() {
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = fb.auth.currentUser
         if (currentUser == null) {
-            findNavController().navigate(R.id.action_loginFragment_to_cameraFragment)
-        } else {
-            fb.db.collection(USERS_COLLECTION).document(currentUser.uid).get().addOnCompleteListener {
-                if (it.isSuccessful) {
-                    user = it.result.toObject(User::class.java)!!
-                }
-            }
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        getUser(view)
         initCamera()
         initListeners()
     }
 
+    private fun getUser(v: View) {
+        fb.db.collection(USERS_COLLECTION).document(fb.auth.currentUser?.uid!!).get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    user = it.result.toObject(User::class.java)!!
+                    Picasso.get().load(user.photoUrl).placeholder(R.drawable.ic_account)
+                        .into(v.findViewById(R.id.iv_account) as ImageView)
+                }
+            }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initListeners() {
         with(binding) {
             // Button to take picture
             fabCamera.setOnClickListener { takePhoto() }
+
+            // Account menu button
             ivAccount.setOnClickListener { v: View -> showAccountMenu(v, R.menu.account_menu) }
 
             // Gestures to swipe to avedex
@@ -157,8 +166,7 @@ class CameraFragment : Fragment() {
         }
         popup.menu.getItem(2).setOnMenuItemClickListener {
             fb.auth.signOut()
-            Navigation.findNavController(binding.root)
-                .navigate(R.id.loginFragment)
+            activity?.onBackPressedDispatcher?.onBackPressed()
             true
         }
 
