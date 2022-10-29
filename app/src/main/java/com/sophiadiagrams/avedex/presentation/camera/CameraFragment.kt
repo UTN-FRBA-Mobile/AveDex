@@ -13,7 +13,6 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.MenuRes
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.ktx.auth
@@ -59,6 +58,7 @@ class CameraFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fb = FirebaseService(Firebase.auth, Firebase.firestore)
+        Log.d("camera_fragment_log1", "alalalalalalalal")
     }
 
     override fun onStart() {

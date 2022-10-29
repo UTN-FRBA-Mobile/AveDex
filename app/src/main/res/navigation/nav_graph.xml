@@ -18,8 +18,7 @@
         <action
             android:id="@+id/action_loginFragment_to_cameraFragment"
             app:destination="@id/cameraFragment"
-            app:popUpTo="@id/cameraFragment"
-            app:popUpToInclusive="true" />
+            />
     </fragment>
     <fragment
         android:id="@+id/avedexFragment"
@@ -29,9 +28,6 @@
         <action
             android:id="@+id/action_avedex_to_birdDescription"
             app:destination="@id/birdDescriptionFragment" />
-        <action
-            android:id="@+id/action_avedex_to_camera"
-            app:destination="@id/cameraFragment" />
     </fragment>
     <fragment
         android:id="@+id/cameraFragment"
@@ -47,7 +43,7 @@
 
             app:popEnterAnim="@anim/slide_down"
             app:popExitAnim="@anim/slide_down"
-            app:popUpToInclusive="false" />
+             />
         <action
             android:id="@+id/action_camera_to_birdRecognized"
             app:destination="@id/birdRecognizedFragment" />

@@ -5,5 +5,5 @@ data class User(
     var email: String  = "",
     var displayName: String  = "",
     var photoUrl: String = "",
-    val recognizedBirds: List<Int> = emptyList()
+    var recognizedBirds: MutableList<Bird> = mutableListOf()
 )

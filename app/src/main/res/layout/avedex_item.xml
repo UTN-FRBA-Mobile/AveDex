@@ -1,45 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="10dp"
-    android:layout_marginTop="10dp"
+    android:layout_gravity="center"
+    android:layout_margin="15dp"
     app:cardCornerRadius="5dp"
-    app:cardElevation="5dp"
-    app:cardUseCompatPadding="true">
-    <!--margin start is used for starting margin in grid layout we don't need margin end-->
+    android:foregroundTint="@color/primary"
+    app:cardElevation="4dp">
+
+    <!--on below line we are creating a
+        linear layout for grid view item-->
     <LinearLayout
-        android:id="@+id/ll_design"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="10dp">
+        android:orientation="vertical">
 
+        <!--on below line we are creating
+            a simple image view-->
         <ImageView
-            android:id="@+id/iv_office"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher_background" />
-        <!--            android:src="@tools:sample/avatars" />-->
+            android:id="@+id/iv_bird"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="7dp"
+            android:src="@drawable/ic_bird" />
 
+        <!--on below line we are creating
+            a simple text view-->
         <TextView
-            android:id="@+id/tv_office"
-            android:layout_width="wrap_content"
+            android:id="@+id/tv_birdName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="10dp"
-            android:text="Pajaro"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:padding="1dp"
+            android:text="@string/app_name"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            tools:ignore="RtlCompat"
+            />
 
-        <TextView
-            android:id="@+id/tv_device"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="especie?" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
