@@ -21,9 +21,8 @@
             android:id="@+id/iv_office"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher_background"
-            />
-<!--            android:src="@tools:sample/avatars" />-->
+            android:src="@drawable/ic_launcher_background" />
+        <!--            android:src="@tools:sample/avatars" />-->
 
         <TextView
             android:id="@+id/tv_office"

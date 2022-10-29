@@ -1,14 +1,16 @@
 <resources>
     <string name="app_name">AveDex</string>
-    <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="common__email_hint">Email</string>
+    <string name="common__password_hint">Password</string>
+    <string name="login__password_recovery_button">Forgot your password?</string>
+    <string name="login__login_button">Log in</string>
+    <string name="login__sign_up_button">Sign Up</string>
+    <string name="common__back_arrow_button">Back arrow</string>
+    <string name="sign_up__header">Sign up</string>
+    <string name="sign_up__full_name_hint">Full Name</string>
+    <string name="sign_up__sign_up_button">Sign Up</string>
+    <string name="hello_blank_fragment">Hello Blank Fragment</string>
+    <string name="login__login_with_google_button">Or continue with Google</string>
+    <string name="account_menu__open_avedex">Open AveDex</string>
+    <string name="account_menu__sign_out">Sign Out</string>
 </resources>

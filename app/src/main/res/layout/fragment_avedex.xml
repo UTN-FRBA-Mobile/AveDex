@@ -3,18 +3,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.bird_recognized.BirdRecognizedFragment">
+    tools:context=".presentation.avedex.AvedexFragment">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Bird Recognized fragment" />
+        android:text="Avedex Fragment" />
+
+    <Button
+        android:id="@+id/btn_goToCamera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="goToCamera" />
 
     <Button
         android:id="@+id/btn_goToBirdDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="80dp"
         android:text="goToBirdDescription" />
 
 </FrameLayout>

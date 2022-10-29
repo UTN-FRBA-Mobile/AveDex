@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mi_displayName"
+        android:enabled="false"
+        android:title="" />
+    <item
+        android:id="@+id/mi_openAvedex"
+        android:title="@string/account_menu__open_avedex" />
+    <item
+        android:id="@+id/mi_signOut"
+        android:title="@string/account_menu__sign_out" />
+</menu>

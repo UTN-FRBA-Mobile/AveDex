@@ -3,40 +3,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/aveDex2">
+    app:startDestination="@id/loginFragment">
     <fragment
-        android:id="@+id/aveDex2"
-        android:name="com.example.avedex.AveDex"
-        android:label="fragment_ave_dex"
-        tools:layout="@layout/fragment_ave_dex" >
+        android:id="@+id/loginFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login">
         <action
-            android:id="@+id/action_aveDex2_to_birdDescription3"
-            app:destination="@id/birdDescription3" />
+            android:id="@+id/action_loginFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_passwordRecoveryFragment"
+            app:destination="@id/passwordRecoveryFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment"
+            app:popUpTo="@id/cameraFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
-        android:id="@+id/birdDescription3"
-        android:name="com.example.avedex.BirdDescription"
+        android:id="@+id/avedexFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.avedex.AvedexFragment"
+        android:label="fragment_avedex"
+        tools:layout="@layout/fragment_avedex">
+        <action
+            android:id="@+id/action_avedex_to_birdDescription"
+            app:destination="@id/birdDescriptionFragment" />
+        <action
+            android:id="@+id/action_avedex_to_camera"
+            app:destination="@id/cameraFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.camera.CameraFragment"
+        android:label="fragment_camera"
+        tools:layout="@layout/fragment_camera">
+        <action
+            android:id="@+id/action_camera_to_avedex"
+            app:destination="@id/avedexFragment"
+
+            app:enterAnim="@anim/slide_up"
+            app:exitAnim="@anim/slide_up"
+
+            app:popEnterAnim="@anim/slide_down"
+            app:popExitAnim="@anim/slide_down"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_camera_to_birdRecognized"
+            app:destination="@id/birdRecognizedFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/birdDescriptionFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.bird_description.BirdDescriptionFragment"
         android:label="fragment_bird_description"
         tools:layout="@layout/fragment_bird_description" />
     <fragment
-        android:id="@+id/camera"
-        android:name="com.example.avedex.Camera"
-        android:label="fragment_camera"
-        tools:layout="@layout/fragment_camera" >
+        android:id="@+id/birdRecognizedFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.bird_recognized.BirdRecognizedFragment"
+        android:label="fragment_bird_recognized"
+        tools:layout="@layout/fragment_bird_recognized">
         <action
-            android:id="@+id/action_camera_to_birdRecognized2"
-            app:destination="@id/birdRecognized2" />
-        <action
-            android:id="@+id/action_camera_to_aveDex2"
-            app:destination="@id/aveDex2" />
+            android:id="@+id/action_birdRecognized_to_birdDescription"
+            app:destination="@id/birdDescriptionFragment" />
     </fragment>
     <fragment
-        android:id="@+id/birdRecognized2"
-        android:name="com.example.avedex.BirdRecognized"
-        android:label="fragment_bird_recognized"
-        tools:layout="@layout/fragment_bird_recognized" >
-        <action
-            android:id="@+id/action_birdRecognized2_to_birdDescription3"
-            app:destination="@id/birdDescription3" />
-    </fragment>
+        android:id="@+id/signUpFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.sign_up.SignUpFragment"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_sign_up" />
+    <fragment
+        android:id="@+id/passwordRecoveryFragment"
+        android:name="com.sophiadiagrams.avedex.presentation.password_recovery.PasswordRecoveryFragment"
+        android:label="fragment_password_recovery"
+        tools:layout="@layout/fragment_password_recovery" />
 </navigation>

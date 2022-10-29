@@ -1,2 +1,0 @@
-# AveDex
-Ave Dex

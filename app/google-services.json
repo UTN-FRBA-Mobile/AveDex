@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "991623215524",
+    "project_id": "avedex-1915b",
+    "storage_bucket": "avedex-1915b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991623215524:android:cd8a7d036d9de0e65d2931",
+        "android_client_info": {
+          "package_name": "com.sophiadiagrams.avedex"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "991623215524-emq2irg6rr0h43l7v5hn6avq0tttib71.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sophiadiagrams.avedex",
+            "certificate_hash": "c60dc86424fb7eade376c9b7a8d58a0cb0253ea5"
+          }
+        },
+        {
+          "client_id": "991623215524-465u1026ns4bumg35eh9bupjjoii9hpn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Uz4Yhusfjnt09tmy19IcpUkIOnDeBSU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "991623215524-465u1026ns4bumg35eh9bupjjoii9hpn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

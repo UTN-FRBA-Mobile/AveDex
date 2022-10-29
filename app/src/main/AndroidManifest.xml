@@ -13,37 +13,8 @@
         android:theme="@style/Theme.AveDex"
         tools:targetApi="31">
         <activity
-            android:name=".BirdDescription"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".AveDex"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".BirdRecognized"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".Bird"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AveDex.NoActionBar">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -51,5 +22,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
