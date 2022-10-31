@@ -17,18 +17,13 @@
             app:destination="@id/passwordRecoveryFragment" />
         <action
             android:id="@+id/action_loginFragment_to_cameraFragment"
-            app:destination="@id/cameraFragment"
-            />
+            app:destination="@id/cameraFragment" />
     </fragment>
     <fragment
         android:id="@+id/avedexFragment"
         android:name="com.sophiadiagrams.avedex.presentation.avedex.AvedexFragment"
         android:label="fragment_avedex"
-        tools:layout="@layout/fragment_avedex">
-        <action
-            android:id="@+id/action_avedex_to_birdDescription"
-            app:destination="@id/birdDescriptionFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_avedex" />
     <fragment
         android:id="@+id/cameraFragment"
         android:name="com.sophiadiagrams.avedex.presentation.camera.CameraFragment"
@@ -42,25 +37,7 @@
             app:exitAnim="@anim/slide_up"
 
             app:popEnterAnim="@anim/slide_down"
-            app:popExitAnim="@anim/slide_down"
-             />
-        <action
-            android:id="@+id/action_camera_to_birdRecognized"
-            app:destination="@id/birdRecognizedFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/birdDescriptionFragment"
-        android:name="com.sophiadiagrams.avedex.presentation.bird_description.BirdDescriptionFragment"
-        android:label="fragment_bird_description"
-        tools:layout="@layout/fragment_bird_description" />
-    <fragment
-        android:id="@+id/birdRecognizedFragment"
-        android:name="com.sophiadiagrams.avedex.presentation.bird_recognized.BirdRecognizedFragment"
-        android:label="fragment_bird_recognized"
-        tools:layout="@layout/fragment_bird_recognized">
-        <action
-            android:id="@+id/action_birdRecognized_to_birdDescription"
-            app:destination="@id/birdDescriptionFragment" />
+            app:popExitAnim="@anim/slide_down" />
     </fragment>
     <fragment
         android:id="@+id/signUpFragment"

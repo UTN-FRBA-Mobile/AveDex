@@ -26,13 +26,15 @@ class BirdsRVAdapter(
 
     override fun onBindViewHolder(holder: BirdViewHolder, position: Int) {
         holder.birdNameTV.text = birdList[position].name
-        storage.reference.child("$uid/${birdList[position].name}").downloadUrl.addOnCompleteListener {
-            if (it.isSuccessful)
-                Picasso.get()
-                    //.load(it.result)
-                    .load("https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f")
-                    .placeholder(R.drawable.ic_bird).into(holder.birdIV)
-        }
+//        storage.reference.child("$uid/${birdList[position].name}").downloadUrl.addOnCompleteListener {
+//            if (it.isSuccessful)
+//                Picasso.get()
+//                    .load(it.result)
+//                    .placeholder(R.drawable.ic_bird).into(holder.birdIV)
+//        }
+        Picasso.get()
+            .load("https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f")
+            .placeholder(R.drawable.ic_bird).into(holder.birdIV)
     }
 
     override fun getItemCount(): Int {
@@ -45,7 +47,7 @@ class BirdsRVAdapter(
 
         init {
             itemView.setOnClickListener {
-                onItemClick?.invoke(birdList[adapterPosition])
+                onItemClick?.invoke(birdList[bindingAdapterPosition])
             }
         }
     }

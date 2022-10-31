@@ -73,15 +73,19 @@ class LoginFragment : Fragment() {
     }
 
     private fun handleLogin() {
+        handleLoading(true)
+
         val email = binding.etEmail.text.toString()
         val password = binding.etPassword.text.toString()
 
         fb.auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
+                    handleLoading(false)
                     Log.d("LOGIN", "signInWithEmail:success")
                     findNavController().navigate(R.id.action_loginFragment_to_cameraFragment)
                 } else {
+                    handleLoading(false)
                     Log.w("LOGIN", "signInWithEmail:failure", task.exception)
                     Toast.makeText(
                         context, "Authentication failed.",
@@ -92,8 +96,29 @@ class LoginFragment : Fragment() {
     }
 
     private fun handleGoogleLogin() {
+        handleLoading(true)
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, GOOGLE_SIGN_IN)
+    }
+
+    private fun handleLoading(isLoading: Boolean) {
+        with(binding) {
+            if (isLoading) {
+                btnLogin.text = ""
+                btnGoogleLogin.text = ""
+                btnLogin.isEnabled = false
+                btnGoogleLogin.isEnabled = false
+                pbLogin.visibility = View.VISIBLE
+                pbGoogleLogin.visibility = View.VISIBLE
+            } else {
+                pbLogin.visibility = View.GONE
+                pbGoogleLogin.visibility = View.GONE
+                btnLogin.text = getString(R.string.login__login_button)
+                btnGoogleLogin.text = getString(R.string.login__login_with_google_button)
+                btnLogin.isEnabled = true
+                btnGoogleLogin.isEnabled = true
+            }
+        }
     }
 
     private fun getGSO(): GoogleSignInOptions {
@@ -123,12 +148,15 @@ class LoginFragment : Fragment() {
                             )
                             fb.db.collection(FirebaseConstants.USERS_COLLECTION).document(user.uid)
                                 .set(user, SetOptions.merge())
+                            handleLoading(false)
                             findNavController().navigate(R.id.action_loginFragment_to_cameraFragment)
                         } else {
+                            handleLoading(false)
                             throw Exception(it.exception)
                         }
                     }
             } catch (e: ApiException) {
+                handleLoading(false)
                 Log.d("LOGIN", "Google Login error: $e")
                 Toast.makeText(
                     context, "Authentication failed.",

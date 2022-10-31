@@ -147,6 +147,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_signUp" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <ProgressBar
+            android:id="@+id/pb_googleLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/btn_googleLogin"
+            app:layout_constraintEnd_toEndOf="@id/btn_googleLogin"
+            app:layout_constraintStart_toStartOf="@id/btn_googleLogin"
+            app:layout_constraintTop_toTopOf="@id/btn_googleLogin" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

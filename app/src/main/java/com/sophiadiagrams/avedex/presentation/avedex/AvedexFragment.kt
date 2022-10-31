@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.ktx.auth
@@ -82,16 +83,10 @@ class AvedexFragment : Fragment() {
         }
 
         birdsRVAdapter.onItemClick = {
-            val dialogView = view?.findViewById<ConstraintLayout>(R.id.bird_dialog)
-            dialogView?.findViewById<TextView>(R.id.tv_birdName)?.text = it.name
-            dialogView?.findViewById<TextView>(R.id.tv_description)?.text = "description"
-//            Picasso.get().load(it.image).placeholder(R.drawable.ic_bird).into(dialogView?.findViewById(R.id.iv_bird))
-            dialogView?.findViewById<TextView>(R.id.tv_location)?.text = it.discoveryLocation
-            dialogView?.findViewById<TextView>(R.id.tv_time)?.text = it.discoveryTime
-
-            MaterialAlertDialogBuilder(mContext)
-                .setView(dialogView)
-                .show()
+            BirdDialogFragment(
+                it,
+                "https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f"
+            ).show(requireActivity().supportFragmentManager, "Bird Dialog")
         }
 
         user.recognizedBirds.add(Bird("Canario"))

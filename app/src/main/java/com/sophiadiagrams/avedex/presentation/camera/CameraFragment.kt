@@ -1,5 +1,6 @@
 package com.sophiadiagrams.avedex.presentation.camera
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
@@ -24,6 +25,7 @@ import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentCameraBinding
 import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
+import com.sophiadiagrams.avedex.lib.services.image_analyzer.ImageAnalyzerService
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants.USERS_COLLECTION
 import com.sophiadiagrams.avedex.presentation.util.OnSwipeTouchListener
 import com.squareup.picasso.Picasso
@@ -41,13 +43,16 @@ class CameraFragment : Fragment() {
     private val mContext get() = _mContext!!
 
     private val permissions = arrayOf(
-        android.Manifest.permission.CAMERA,
-        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.INTERNET
     )
     private var fotoapparat: Fotoapparat? = null
 
     private var user = User()
     private lateinit var fb: FirebaseService
+    private lateinit var ia: ImageAnalyzerService
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,6 +82,8 @@ class CameraFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Está acá y no en el onCreate porque necesita que el contexto esté inicializado
+        ia = ImageAnalyzerService(mContext)
         getUser(view)
         if (hasNoPermissions())
             requestPermissions()
@@ -89,8 +96,9 @@ class CameraFragment : Fragment() {
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     user = it.result.toObject(User::class.java)!!
-                    Picasso.get().load(user.photoUrl).placeholder(R.drawable.ic_account)
-                        .into(v.findViewById(R.id.iv_account) as ImageView)
+                    if (user.photoUrl.isNotEmpty())
+                        Picasso.get().load(user.photoUrl).placeholder(R.drawable.ic_account)
+                            .into(v.findViewById(R.id.iv_account) as ImageView)
                 }
             }
     }
@@ -174,18 +182,40 @@ class CameraFragment : Fragment() {
     }
 
     private fun takePhoto() {
+        if (fotoapparat == null) {
+            Toast.makeText(
+                mContext,
+                "Initializing camera, please wait a second and try again",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            initCamera()
+            return
+        }
+
         if (hasNoPermissions())
             requestPermissions()
         else {
-            val birdDetector = BirdDetector(mContext)
-            val birdClassifier = BirdClassifier(mContext)
-            val picture = fotoapparat
-                ?.takePicture()
-            picture?.toBitmap()?.whenAvailable {
-                val bitmapDetected = birdDetector.detect(it)
-                val birdRecognized = birdClassifier.classify(bitmapDetected)
-                Navigation.findNavController(binding.root)
-                    .navigate(R.id.action_camera_to_birdRecognized)
+            val picture = fotoapparat!!.takePicture()
+            picture.toBitmap().whenAvailable {
+                val bitmap = if (it!!.rotationDegrees != 0) ia.utils.rotateBitmap(
+                    it.bitmap,
+                    it.rotationDegrees
+                ) else it.bitmap
+                val detected = ia.detect(bitmap)
+                if (detected == null) {
+                    //handle no bird state, probably a toast or something like that
+                } else {
+                    // CHeuquera que teng a internet porque no se va a poder hacer nada sino
+                    // ACCESS_NETWORK_STATE permission
+                    val recognized = ia.classify(detected)
+                    if (recognized != null) {
+                        RecognizedBirdDialogFragment(recognized.label, detected, requireActivity()).show(
+                            requireActivity().supportFragmentManager,
+                            "Bird Recognition Dialog"
+                        )
+                    }
+                }
             }
         }
     }
@@ -193,11 +223,19 @@ class CameraFragment : Fragment() {
     private fun hasNoPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(
             mContext,
-            android.Manifest.permission.CAMERA
+            Manifest.permission.CAMERA
         ) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(
                     mContext,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    mContext,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    mContext,
+                    Manifest.permission.INTERNET
                 ) != PackageManager.PERMISSION_GRANTED
     }
 
