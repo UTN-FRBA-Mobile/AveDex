@@ -1,10 +1,10 @@
 package com.sophiadiagrams.avedex.presentation.bird_description
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.sophiadiagrams.avedex.R
 
 class BirdDescriptionFragment : Fragment() {

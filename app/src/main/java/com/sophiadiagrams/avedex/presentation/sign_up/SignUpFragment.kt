@@ -1,17 +1,16 @@
 package com.sophiadiagrams.avedex.presentation.sign_up
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.navigation.Navigation
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.sophiadiagrams.avedex.R
+import com.google.firebase.storage.ktx.storage
 import com.sophiadiagrams.avedex.databinding.FragmentSignUpBinding
 import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
@@ -36,7 +35,7 @@ class SignUpFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fb = FirebaseService(Firebase.auth, Firebase.firestore)
+        fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

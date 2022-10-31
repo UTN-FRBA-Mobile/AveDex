@@ -1,6 +1,5 @@
 package com.sophiadiagrams.avedex.presentation.util
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener

@@ -1,24 +1,20 @@
 package com.sophiadiagrams.avedex.presentation.avedex
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentAvedexBinding
 import com.sophiadiagrams.avedex.lib.models.Bird
@@ -26,7 +22,6 @@ import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 import com.sophiadiagrams.avedex.presentation.util.OnSwipeTouchListener
-import com.squareup.picasso.Picasso
 
 class AvedexFragment : Fragment() {
 
@@ -51,61 +46,7 @@ class AvedexFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fb = FirebaseService(Firebase.auth, Firebase.firestore)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        initListeners()
-        initAdapter()
-    }
-
-    private fun initAdapter() {
-        val layoutManager = GridLayoutManager(mContext, 3)
-
-        with(binding) {
-            rvAvedex.layoutManager = layoutManager
-            birdsRVAdapter = BirdsRVAdapter(user.recognizedBirds)
-            rvAvedex.adapter = birdsRVAdapter
-        }
-
-        birdsRVAdapter.onItemClick = {
-            val dialogView = view?.findViewById<ConstraintLayout>(R.id.bird_dialog)
-            dialogView?.findViewById<TextView>(R.id.tv_birdName)?.text = it.name
-            dialogView?.findViewById<TextView>(R.id.tv_description)?.text = it.description
-//            Picasso.get().load(it.image).placeholder(R.drawable.ic_bird).into(dialogView?.findViewById(R.id.iv_bird))
-            dialogView?.findViewById<TextView>(R.id.tv_location)?.text = it.discoveryLocation
-            dialogView?.findViewById<TextView>(R.id.tv_time)?.text = it.discoveryTime
-
-            MaterialAlertDialogBuilder(mContext)
-                .setView(dialogView)
-                .show()
-        }
-
-        val imageLink =
-            "https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f"
-
-        user.recognizedBirds.add(Bird("Canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("Cuervo", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("Colibrí", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("Paloma", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("Murciélago", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("Otro pájaro", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-        user.recognizedBirds.add(Bird("canario", imageLink, "Una pajarito sensual"))
-
-        birdsRVAdapter.notifyDataSetChanged()
+        fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
     }
 
     override fun onStart() {
@@ -122,6 +63,57 @@ class AvedexFragment : Fragment() {
                     }
                 }
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initListeners()
+        initAdapter()
+    }
+
+    private fun initAdapter() {
+        val layoutManager = GridLayoutManager(mContext, 3)
+
+        with(binding) {
+            rvAvedex.layoutManager = layoutManager
+            birdsRVAdapter = BirdsRVAdapter(user.recognizedBirds, user.uid, fb.storage)
+            rvAvedex.adapter = birdsRVAdapter
+        }
+
+        birdsRVAdapter.onItemClick = {
+            val dialogView = view?.findViewById<ConstraintLayout>(R.id.bird_dialog)
+            dialogView?.findViewById<TextView>(R.id.tv_birdName)?.text = it.name
+            dialogView?.findViewById<TextView>(R.id.tv_description)?.text = "description"
+//            Picasso.get().load(it.image).placeholder(R.drawable.ic_bird).into(dialogView?.findViewById(R.id.iv_bird))
+            dialogView?.findViewById<TextView>(R.id.tv_location)?.text = it.discoveryLocation
+            dialogView?.findViewById<TextView>(R.id.tv_time)?.text = it.discoveryTime
+
+            MaterialAlertDialogBuilder(mContext)
+                .setView(dialogView)
+                .show()
+        }
+
+        user.recognizedBirds.add(Bird("Canario"))
+        user.recognizedBirds.add(Bird("Cuervo"))
+        user.recognizedBirds.add(Bird("Colibrí"))
+        user.recognizedBirds.add(Bird("Paloma"))
+        user.recognizedBirds.add(Bird("Murciélago"))
+        user.recognizedBirds.add(Bird("Otro pájaro"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+        user.recognizedBirds.add(Bird("canario"))
+
+        birdsRVAdapter.notifyDataSetChanged()
     }
 
     @SuppressLint("ClickableViewAccessibility")

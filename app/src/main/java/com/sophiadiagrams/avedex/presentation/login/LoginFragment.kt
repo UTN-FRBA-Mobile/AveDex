@@ -1,8 +1,6 @@
 package com.sophiadiagrams.avedex.presentation.login
 
 import android.content.Intent
-import android.content.IntentSender
-import android.content.IntentSender.SendIntentException
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,21 +9,16 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.BeginSignInResult
-import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentLoginBinding
 import com.sophiadiagrams.avedex.lib.models.User
@@ -55,7 +48,7 @@ class LoginFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fb = FirebaseService(Firebase.auth, Firebase.firestore)
+        fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
         googleSignInClient = GoogleSignIn.getClient(requireContext(), getGSO())
     }
 

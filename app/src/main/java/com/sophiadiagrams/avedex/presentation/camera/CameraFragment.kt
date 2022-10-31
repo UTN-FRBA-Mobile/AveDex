@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,12 +11,15 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.MenuRes
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentCameraBinding
 import com.sophiadiagrams.avedex.lib.models.User
@@ -41,6 +42,7 @@ class CameraFragment : Fragment() {
 
     private val permissions = arrayOf(
         android.Manifest.permission.CAMERA,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION,
     )
     private var fotoapparat: Fotoapparat? = null
 
@@ -59,7 +61,7 @@ class CameraFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fb = FirebaseService(Firebase.auth, Firebase.firestore)
+        fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
     }
 
     override fun onStart() {
@@ -76,6 +78,8 @@ class CameraFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         getUser(view)
+        if (hasNoPermissions())
+            requestPermissions()
         initCamera()
         initListeners()
     }
@@ -136,10 +140,6 @@ class CameraFragment : Fragment() {
     }
 
     private fun initCamera() {
-        if (hasNoPermissions()) {
-            requestPermission()
-        }
-
         fotoapparat = Fotoapparat(
             context = mContext,
             view = binding.cameraView,
@@ -174,13 +174,19 @@ class CameraFragment : Fragment() {
     }
 
     private fun takePhoto() {
-        if (hasNoPermissions()) {
-            requestPermission()
-        } else {
-            fotoapparat
+        if (hasNoPermissions())
+            requestPermissions()
+        else {
+            val birdDetector = BirdDetector(mContext)
+            val birdClassifier = BirdClassifier(mContext)
+            val picture = fotoapparat
                 ?.takePicture()
-            Navigation.findNavController(binding.root)
-                .navigate(R.id.action_camera_to_birdRecognized)
+            picture?.toBitmap()?.whenAvailable {
+                val bitmapDetected = birdDetector.detect(it)
+                val birdRecognized = birdClassifier.classify(bitmapDetected)
+                Navigation.findNavController(binding.root)
+                    .navigate(R.id.action_camera_to_birdRecognized)
+            }
         }
     }
 
@@ -188,11 +194,23 @@ class CameraFragment : Fragment() {
         return ContextCompat.checkSelfPermission(
             mContext,
             android.Manifest.permission.CAMERA
-        ) != PackageManager.PERMISSION_GRANTED
+        ) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    mContext,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestPermission() {
-        requestPermissions(permissions, 0)
+    private fun requestPermissions() {
+        MaterialAlertDialogBuilder(mContext)
+            .setTitle("About permissions")
+            .setMessage("Please allow Avedex to use your device's location and camera. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
+            .setIcon(R.drawable.ic_logo)
+            .setPositiveButton("Continue") { dialog, _ ->
+                ActivityCompat.requestPermissions(requireActivity(), permissions, 0)
+                dialog.cancel()
+            }
+            .show()
     }
 
     override fun onStop() {
