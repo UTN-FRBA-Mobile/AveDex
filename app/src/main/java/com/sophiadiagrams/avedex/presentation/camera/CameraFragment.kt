@@ -62,8 +62,7 @@ class CameraFragment : Fragment() {
     private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
         _mContext = requireContext()
@@ -92,8 +91,7 @@ class CameraFragment : Fragment() {
         // Está acá y no en el onCreate porque necesita que el contexto esté inicializado
         ia = ImageAnalyzerService(mContext)
         getUser(view)
-        if (hasNoPermissions())
-            requestPermissions()
+        if (hasNoPermissions()) requestPermissions()
         initCamera()
         initListeners()
     }
@@ -103,9 +101,9 @@ class CameraFragment : Fragment() {
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     user = it.result.toObject(User::class.java)!!
-                    if (user.photoUrl.isNotEmpty())
-                        Picasso.get().load(user.photoUrl).placeholder(R.drawable.ic_account)
-                            .into(v.findViewById(R.id.iv_account) as ImageView)
+                    if (user.photoUrl.isNotEmpty()) Picasso.get().load(user.photoUrl)
+                        .placeholder(R.drawable.ic_account)
+                        .into(v.findViewById(R.id.iv_account) as ImageView)
                 }
             }
     }
@@ -124,18 +122,14 @@ class CameraFragment : Fragment() {
                 override fun onSwipeLeft() {
                     super.onSwipeLeft()
                     Toast.makeText(
-                        mContext, "Swipe up to open AveDex",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
+                        mContext, "Swipe up to open AveDex", Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 override fun onSwipeRight() {
                     super.onSwipeRight()
                     Toast.makeText(
-                        mContext,
-                        "Swipe up to open AveDex",
-                        Toast.LENGTH_SHORT
+                        mContext, "Swipe up to open AveDex", Toast.LENGTH_SHORT
                     ).show()
                 }
 
@@ -147,16 +141,14 @@ class CameraFragment : Fragment() {
 
                 override fun onSwipeDown() {
                     super.onSwipeDown()
-                    Toast.makeText(mContext, "Swipe up to open AveDex", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(mContext, "Swipe up to open AveDex", Toast.LENGTH_SHORT).show()
                 }
             })
         }
     }
 
     private fun initCamera() {
-        fotoapparat = Fotoapparat(
-            context = mContext,
+        fotoapparat = Fotoapparat(context = mContext,
             view = binding.cameraView,
             scaleType = ScaleType.CenterCrop,
             lensPosition = back(),
@@ -165,8 +157,7 @@ class CameraFragment : Fragment() {
             ),
             cameraErrorCallback = { error ->
                 println("Recorder errors: $error")
-            }
-        )
+            })
     }
 
     private fun showAccountMenu(v: View, @MenuRes menuRes: Int) {
@@ -175,8 +166,7 @@ class CameraFragment : Fragment() {
 
         popup.menu.getItem(0).title = user.displayName
         popup.menu.getItem(1).setOnMenuItemClickListener {
-            Navigation.findNavController(binding.root)
-                .navigate(R.id.action_camera_to_avedex)
+            Navigation.findNavController(binding.root).navigate(R.id.action_camera_to_avedex)
             true
         }
         popup.menu.getItem(2).setOnMenuItemClickListener {
@@ -194,39 +184,57 @@ class CameraFragment : Fragment() {
                 mContext,
                 "Initializing camera, please wait a second and try again",
                 Toast.LENGTH_SHORT
-            )
-                .show()
+            ).show()
             initCamera()
             return
         }
 
-        if (hasNoPermissions())
-            requestPermissions()
+        if (hasNoPermissions()) requestPermissions()
         else {
             val picture = fotoapparat!!.takePicture()
             analyzePhoto(picture)
         }
     }
 
-    private fun recognitionFlow(b: Bitmap) {
+//    private fun recognitionFlow(b: Bitmap) {
+//
+//        val recognized = ia.classify(b)
+//
+//        if (recognized == null) {
+//            MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
+//                .setIcon(R.drawable.ic_bird)
+//                .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
+//                .setPositiveButton("Ok", null)
+//                .show()
+//        } else {
+//            RecognizedBirdDialogFragment(
+//                recognized.label,
+//                b,
+//                requireActivity()
+//            ).show(
+//                requireActivity().supportFragmentManager,
+//                "Bird Recognition Dialog"
+//            )
+//        }
+//    }
 
-        val recognized = ia.classify(b)
-
-        if (recognized == null) {
-            MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
-                .setIcon(R.drawable.ic_bird)
-                .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
-                .setPositiveButton("Ok", null)
-                .show()
-        } else {
-            RecognizedBirdDialogFragment(
-                recognized.label,
-                b,
-                requireActivity()
-            ).show(
-                requireActivity().supportFragmentManager,
-                "Bird Recognition Dialog"
-            )
+    private suspend fun recognitionFlow(b: Bitmap) {
+        coroutineScope {
+            val birdRecognized = ia.classify(b)
+            withContext(Dispatchers.Main) {
+                if (birdRecognized == null) {
+                    MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
+                        .setIcon(R.drawable.ic_bird)
+                        .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
+                        .setPositiveButton("Ok", null).show()
+                } else {
+                    RecognizedBirdDialogFragment(
+                        birdRecognized, b, requireActivity()
+                    ).show(
+                        requireActivity().supportFragmentManager, "Bird Recognition Dialog"
+                    )
+                }
+            }
         }
     }
 
@@ -234,59 +242,48 @@ class CameraFragment : Fragment() {
         val it = picture.toBitmap().await()
 
         val bitmap = if (it.rotationDegrees != 0) ia.utils.rotateBitmap(
-            it.bitmap,
-            it.rotationDegrees
+            it.bitmap, it.rotationDegrees
         ) else it.bitmap
         val detected = ia.detect(bitmap)
 
         withContext(Dispatchers.Main) {
             if (detected == null) {
                 MaterialAlertDialogBuilder(mContext).setTitle("No bird found")
-                    .setIcon(R.drawable.ic_bird)
-                    .setMessage("Our AI was unable to find any bird on the photo you took. If you think this is a mistake you can continue but there is no guarantee that the species recognition will work properly.")
-                    .setPositiveButton("Take another picture", null)
+                    .setIcon(R.drawable.ic_bird).setMessage(
+                        "Our AI was unable to find any bird on the photo you took." + "If you think this is a mistake you can continue but there is no guarantee " + "that the species recognition will work properly."
+                    ).setPositiveButton("Take another picture") { dialog, _ -> dialog.cancel() }
                     .setNegativeButton("Continue anyways") { _, _ ->
-
-                        recognitionFlow(bitmap)
-                    }
-                    .show()
+                        uiScope.launch(Dispatchers.IO) {
+                            recognitionFlow(bitmap)
+                        }
+                    }.show()
             } else {
                 // Chequera que tenga internet porque no se va a poder hacer nada sino
                 // ACCESS_NETWORK_STATE permission
-                recognitionFlow(detected)
+                uiScope.launch(Dispatchers.IO) { recognitionFlow(detected) }
             }
         }
     }
 
     private fun hasNoPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(
-            mContext,
-            Manifest.permission.CAMERA
-        ) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(
-                    mContext,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(
-                    mContext,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(
-                    mContext,
-                    Manifest.permission.INTERNET
-                ) != PackageManager.PERMISSION_GRANTED
+            mContext, Manifest.permission.CAMERA
+        ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            mContext, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            mContext, Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            mContext, Manifest.permission.INTERNET
+        ) != PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestPermissions() {
-        MaterialAlertDialogBuilder(mContext)
-            .setTitle("About permissions")
+        MaterialAlertDialogBuilder(mContext).setTitle("About permissions")
             .setMessage("Please allow Avedex to use your device's location and camera. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
-            .setIcon(R.drawable.ic_logo)
-            .setPositiveButton("Continue") { dialog, _ ->
+            .setIcon(R.drawable.ic_logo).setPositiveButton("Continue") { dialog, _ ->
                 ActivityCompat.requestPermissions(requireActivity(), permissions, 0)
                 dialog.cancel()
-            }
-            .show()
+            }.show()
     }
 
     override fun onStop() {

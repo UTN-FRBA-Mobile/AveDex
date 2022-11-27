@@ -3,14 +3,15 @@ package com.sophiadiagrams.avedex.lib.services.image_analyzer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.util.Log
+import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
+import com.sophiadiagrams.avedex.lib.services.retrofit.RetrofitService
 import com.sophiadiagrams.avedex.ml.BirdsClassifier
 import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.label.Category
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
 
 class ImageAnalyzerService(val context: Context) {
     var utils = Utils
+    private var retrofit = RetrofitService()
 
     fun detect(bitmap: Bitmap): Bitmap? {
         val image = TensorImage.fromBitmap(bitmap)
@@ -44,16 +45,23 @@ class ImageAnalyzerService(val context: Context) {
         return null
     }
 
-    // TODO: usar nuestro modelo
-    fun classify(bitmap: Bitmap): Category? {
-        val model = BirdsClassifier.newInstance(context)
-        val image = TensorImage.fromBitmap(bitmap)
-        val outputs = model.process(image)
-        val result = outputs.probabilityAsCategoryList.maxBy { it.score }
-        model.close()
-        return if (result.label != "None" && result.score >= 0.5) result
-        else null
+    suspend fun classify(bitmap: Bitmap): BirdsResponse? {
+        return retrofit.postBirdsData("ABBOTTS BABBLER")
+//        return if (true) {
+//            retrofit.postBirdsData("ABBOTS BABBLER")
+//        } else {
+//            val model = BirdsClassifier.newInstance(context)
+//            val image = TensorImage.fromBitmap(bitmap)
+//            val outputs = model.process(image)
+//            val result = outputs.probabilityAsCategoryList.maxBy { it.score }
+//            model.close()
+//            if (result.label != "None" && result.score >= 0.5) BirdsResponse(
+//                result.displayName,
+//                null,
+//                null,
+//                null
+//            )
+//            else null
+//        }
     }
 }
-
-

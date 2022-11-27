@@ -2,7 +2,9 @@ package com.sophiadiagrams.avedex.presentation.camera
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,15 +20,15 @@ import com.sophiadiagrams.avedex.databinding.FragmentRecognizedBirdDialogBinding
 import com.sophiadiagrams.avedex.lib.models.User
 import com.sophiadiagrams.avedex.lib.services.FirebaseService
 import com.sophiadiagrams.avedex.lib.services.location.LocationService
+import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.*
+import java.util.*
 
 class RecognizedBirdDialogFragment(
-    private val birdName: String,
-    private val birdImage: Bitmap,
-    private val activity: Activity
-) :
-    DialogFragment() {
+    private val bird: BirdsResponse, private val birdPicture: Bitmap, private val activity: Activity
+) : DialogFragment() {
 
     private var _binding: FragmentRecognizedBirdDialogBinding? = null
     private val binding get() = _binding!!
@@ -34,6 +36,9 @@ class RecognizedBirdDialogFragment(
     private var user = User()
     private lateinit var fb: FirebaseService
     private lateinit var l: LocationService
+
+    private val analyzePictureJob = SupervisorJob()
+    private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,11 +49,9 @@ class RecognizedBirdDialogFragment(
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecognizedBirdDialogBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -62,7 +65,7 @@ class RecognizedBirdDialogFragment(
     private fun initListeners() {
         with(binding) {
             btnYes.setOnClickListener {
-                handleAcceptRecognition()
+                uiScope.launch(Dispatchers.IO) { handleAcceptRecognition() }
             }
 
             btnNo.setOnClickListener {
@@ -70,33 +73,45 @@ class RecognizedBirdDialogFragment(
                     context,
                     "Thanks for your feedback, we will use it to improve our AI",
                     Toast.LENGTH_SHORT
-                )
-                    .show()
+                ).show()
             }
         }
     }
 
-    private fun handleAcceptRecognition() {
-        l.getFullLocation()
-//        user.recognizedBirds.add(Bird(name = birdName, discoveryLocation =))
+    private suspend fun handleAcceptRecognition() {
+        coroutineScope {
+            val document = hashMapOf(
+                "user" to user.uid,
+                "name" to bird.name,
+                "time" to SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(Date())
+            )
+            val documentReference = fb.db.collection("birds").document()
+            documentReference.set(document)
+                .addOnSuccessListener {
+                    Log.d("FB", "Bird successfully written in the db!")
+                    l.updateLocation(requireContext(), documentReference)
+                }
+                .addOnFailureListener { e -> Log.w("FB", "Error writing document", e) }
+        }
+
     }
 
     private fun populateDialog() {
         with(binding) {
-            tvTitle.text = birdName
-            ivBird.setImageBitmap(birdImage)
-            Picasso.get()
-                .load("https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f")
+            tvTitle.text = bird.name
+            ivBird.setImageBitmap(birdPicture)
+            Picasso.get().load("https://avedex.bepi.tech/${bird.url}")
                 .placeholder(R.drawable.ic_bird).into(ivRecognizedBird)
-            tvDescription.text =
-                "Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn Descriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbnDescriptioasndaoskdnm;kasklhsa bdakshbd askhdbn ashdbjnsal fjhbnsalkjdn lasdjfn lakshabdnalskj dbnalkshbd alkhsjbdn laskdjfb nlaksdjbfnlasjdnfl ;oasjdnf kasjdfn lsjdnf ljsadn lk jnsdlfk dsjf jsa dflkdjbn"
+            tvDescription.text = bird.description
         }
     }
 
     private fun getUser() {
         fb.db.collection(FirebaseConstants.USERS_COLLECTION).document(fb.auth.currentUser?.uid!!)
-            .get()
-            .addOnCompleteListener {
+            .get().addOnCompleteListener {
                 if (it.isSuccessful) {
                     user = it.result.toObject(User::class.java)!!
                 }
