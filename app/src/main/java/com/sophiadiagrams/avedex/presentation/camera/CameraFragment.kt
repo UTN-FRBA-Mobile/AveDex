@@ -3,6 +3,7 @@ package com.sophiadiagrams.avedex.presentation.camera
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -57,6 +58,7 @@ class CameraFragment : Fragment() {
     private var user = User()
     private lateinit var fb: FirebaseService
     private lateinit var ia: ImageAnalyzerService
+    var fotoapparatState: FotoapparatState? = null
 
     private val analyzePictureJob = SupervisorJob()
     private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
@@ -73,6 +75,14 @@ class CameraFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!hasNoPermissions() && fotoapparatState == FotoapparatState.OFF) {
+            val intent = Intent(mContext, CameraFragment::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onStart() {
@@ -93,6 +103,7 @@ class CameraFragment : Fragment() {
         getUser(view)
         if (hasNoPermissions()) requestPermissions()
         initCamera()
+        fotoapparatState = FotoapparatState.ON
         initListeners()
     }
 
@@ -196,28 +207,6 @@ class CameraFragment : Fragment() {
         }
     }
 
-//    private fun recognitionFlow(b: Bitmap) {
-//
-//        val recognized = ia.classify(b)
-//
-//        if (recognized == null) {
-//            MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
-//                .setIcon(R.drawable.ic_bird)
-//                .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
-//                .setPositiveButton("Ok", null)
-//                .show()
-//        } else {
-//            RecognizedBirdDialogFragment(
-//                recognized.label,
-//                b,
-//                requireActivity()
-//            ).show(
-//                requireActivity().supportFragmentManager,
-//                "Bird Recognition Dialog"
-//            )
-//        }
-//    }
-
     private suspend fun recognitionFlow(b: Bitmap) {
         coroutineScope {
             val birdRecognized = ia.classify(b)
@@ -258,9 +247,9 @@ class CameraFragment : Fragment() {
                         }
                     }.show()
             } else {
-                // Chequera que tenga internet porque no se va a poder hacer nada sino
-                // ACCESS_NETWORK_STATE permission
-                uiScope.launch(Dispatchers.IO) { recognitionFlow(detected) }
+                uiScope.launch(Dispatchers.IO) {
+                    recognitionFlow(detected)
+                }
             }
         }
     }
@@ -289,5 +278,10 @@ class CameraFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         fotoapparat?.stop()
+        fotoapparatState = FotoapparatState.OFF
     }
+}
+
+enum class FotoapparatState {
+    ON, OFF
 }

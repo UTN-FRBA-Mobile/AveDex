@@ -2,6 +2,7 @@ package com.sophiadiagrams.avedex.presentation.camera
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,6 +23,8 @@ import com.sophiadiagrams.avedex.lib.services.location.LocationService
 import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.*
+import java.util.*
 
 class RecognizedBirdDialogFragment(
     private val bird: BirdsResponse, private val birdPicture: Bitmap, private val activity: Activity
@@ -33,6 +36,9 @@ class RecognizedBirdDialogFragment(
     private var user = User()
     private lateinit var fb: FirebaseService
     private lateinit var l: LocationService
+
+    private val analyzePictureJob = SupervisorJob()
+    private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +52,6 @@ class RecognizedBirdDialogFragment(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecognizedBirdDialogBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -60,7 +65,7 @@ class RecognizedBirdDialogFragment(
     private fun initListeners() {
         with(binding) {
             btnYes.setOnClickListener {
-                handleAcceptRecognition()
+                uiScope.launch(Dispatchers.IO) { handleAcceptRecognition() }
             }
 
             btnNo.setOnClickListener {
@@ -73,9 +78,25 @@ class RecognizedBirdDialogFragment(
         }
     }
 
-    private fun handleAcceptRecognition() {
-        //crear doc card
-        val loc = l.getFullLocation(this.requireContext())
+    private suspend fun handleAcceptRecognition() {
+        coroutineScope {
+            val document = hashMapOf(
+                "user" to user.uid,
+                "name" to bird.name,
+                "time" to SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(Date())
+            )
+            val documentReference = fb.db.collection("birds").document()
+            documentReference.set(document)
+                .addOnSuccessListener {
+                    Log.d("FB", "Bird successfully written in the db!")
+                    l.updateLocation(requireContext(), documentReference)
+                }
+                .addOnFailureListener { e -> Log.w("FB", "Error writing document", e) }
+        }
+
     }
 
     private fun populateDialog() {

@@ -12,21 +12,19 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector
 class ImageAnalyzerService(val context: Context) {
     var utils = Utils
     private var retrofit = RetrofitService()
+    private val options = ObjectDetector.ObjectDetectorOptions.builder()
+        .setMaxResults(5)
+        .setScoreThreshold(0.3f)
+        .build()
+
+    private val detector = ObjectDetector.createFromFileAndOptions(
+        this.context,
+        "object-detector.tflite",
+        options
+    )
 
     fun detect(bitmap: Bitmap): Bitmap? {
         val image = TensorImage.fromBitmap(bitmap)
-
-        val options = ObjectDetector.ObjectDetectorOptions.builder()
-            .setMaxResults(5)
-            .setScoreThreshold(0.3f)
-            .build()
-
-        val detector = ObjectDetector.createFromFileAndOptions(
-            this.context,
-            "object-detector.tflite",
-            options
-        )
-
         val results = detector.detect(image)
         for (detectedObject in results) {
             if (detectedObject.categories.map { it.label }.any { it == "bird" }) {
@@ -48,7 +46,7 @@ class ImageAnalyzerService(val context: Context) {
     suspend fun classify(bitmap: Bitmap): BirdsResponse? {
         return retrofit.postBirdsData("ABBOTTS BABBLER")
 //        return if (true) {
-//            retrofit.postBirdsData("ABBOTS BABBLER")
+//            retrofit.postBirdsData("ABBOTTS BABBLER")
 //        } else {
 //            val model = BirdsClassifier.newInstance(context)
 //            val image = TensorImage.fromBitmap(bitmap)

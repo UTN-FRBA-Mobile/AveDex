@@ -7,32 +7,32 @@ import android.location.Geocoder
 import android.location.Location
 import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
-import kotlinx.coroutines.runBlocking
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.SetOptions
 import java.util.*
 
 class LocationService(private var fusedLocationClient: FusedLocationProviderClient) {
 
     @SuppressLint("MissingPermission") // PORQUE SE PIDE EN LA CAMARA LOS PERMISOS DE LOCATION
-    fun getFullLocation(context: Context): String {
-        var loc = ""
-        runBlocking {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                Log.d("LOCATION", "$location")
-                val geocoder = Geocoder(context, Locale.getDefault())
-                val addresses: List<Address> =
-                    geocoder.getFromLocation(
-                        location!!.latitude,
-                        location!!.longitude,
-                        1
-                    ) as List<Address>
-                val city = addresses[0].locality
-                val state = addresses[0].adminArea
-                val country = addresses[0].countryName
-                loc = "$city, $state, $country"
-                //ACA actualizar location en doc de firebase
-            }
+    fun updateLocation(context: Context, document: DocumentReference) {
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+            Log.d("LOCATION", "$it")
+            val geocoder = Geocoder(context, Locale.getDefault())
+            val addresses: List<Address> =
+                geocoder.getFromLocation(
+                    it!!.latitude,
+                    it.longitude,
+                    1
+                ) as List<Address>
+            val city = addresses[0].locality
+            val state = addresses[0].adminArea
+            val country = addresses[0].countryName
+            val loc = "$city, $state, $country"
+            val data = hashMapOf(
+                "location" to loc
+            )
+            document.set(data, SetOptions.merge())
+            Log.d("FB", "Location successfully written in the db!")
         }
-        return loc
     }
 }
