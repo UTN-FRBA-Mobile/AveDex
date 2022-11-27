@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,7 +34,9 @@ import io.fotoapparat.Fotoapparat
 import io.fotoapparat.log.logcat
 import io.fotoapparat.log.loggers
 import io.fotoapparat.parameter.ScaleType
+import io.fotoapparat.result.PhotoResult
 import io.fotoapparat.selector.back
+import kotlinx.coroutines.*
 
 class CameraFragment : Fragment() {
 
@@ -46,13 +49,17 @@ class CameraFragment : Fragment() {
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.INTERNET
+        Manifest.permission.INTERNET,
+        Manifest.permission.ACCESS_NETWORK_STATE
     )
     private var fotoapparat: Fotoapparat? = null
 
     private var user = User()
     private lateinit var fb: FirebaseService
     private lateinit var ia: ImageAnalyzerService
+
+    private val analyzePictureJob = SupervisorJob()
+    private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -107,7 +114,7 @@ class CameraFragment : Fragment() {
     private fun initListeners() {
         with(binding) {
             // Button to take picture
-            fabCamera.setOnClickListener { takePhoto() }
+            fabCamera.setOnClickListener { uiScope.launch(Dispatchers.IO) { takePhoto() } }
 
             // Account menu button
             ivAccount.setOnClickListener { v: View -> showAccountMenu(v, R.menu.account_menu) }
@@ -181,7 +188,7 @@ class CameraFragment : Fragment() {
         popup.show()
     }
 
-    private fun takePhoto() {
+    private suspend fun takePhoto() {
         if (fotoapparat == null) {
             Toast.makeText(
                 mContext,
@@ -197,25 +204,56 @@ class CameraFragment : Fragment() {
             requestPermissions()
         else {
             val picture = fotoapparat!!.takePicture()
-            picture.toBitmap().whenAvailable {
-                val bitmap = if (it!!.rotationDegrees != 0) ia.utils.rotateBitmap(
-                    it.bitmap,
-                    it.rotationDegrees
-                ) else it.bitmap
-                val detected = ia.detect(bitmap)
-                if (detected == null) {
-                    //handle no bird state, probably a toast or something like that
-                } else {
-                    // CHeuquera que teng a internet porque no se va a poder hacer nada sino
-                    // ACCESS_NETWORK_STATE permission
-                    val recognized = ia.classify(detected)
-                    if (recognized != null) {
-                        RecognizedBirdDialogFragment(recognized.label, detected, requireActivity()).show(
-                            requireActivity().supportFragmentManager,
-                            "Bird Recognition Dialog"
-                        )
+            analyzePhoto(picture)
+        }
+    }
+
+    private fun recognitionFlow(b: Bitmap) {
+
+        val recognized = ia.classify(b)
+
+        if (recognized == null) {
+            MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
+                .setIcon(R.drawable.ic_bird)
+                .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
+                .setPositiveButton("Ok", null)
+                .show()
+        } else {
+            RecognizedBirdDialogFragment(
+                recognized.label,
+                b,
+                requireActivity()
+            ).show(
+                requireActivity().supportFragmentManager,
+                "Bird Recognition Dialog"
+            )
+        }
+    }
+
+    private suspend fun analyzePhoto(picture: PhotoResult) {
+        val it = picture.toBitmap().await()
+
+        val bitmap = if (it.rotationDegrees != 0) ia.utils.rotateBitmap(
+            it.bitmap,
+            it.rotationDegrees
+        ) else it.bitmap
+        val detected = ia.detect(bitmap)
+
+        withContext(Dispatchers.Main) {
+            if (detected == null) {
+                MaterialAlertDialogBuilder(mContext).setTitle("No bird found")
+                    .setIcon(R.drawable.ic_bird)
+                    .setMessage("Our AI was unable to find any bird on the photo you took. If you think this is a mistake you can continue but there is no guarantee that the species recognition will work properly.")
+                    .setPositiveButton("Take another picture", null)
+                    .setNegativeButton("Continue anyways") { _, _ ->
+
+                        recognitionFlow(bitmap)
                     }
-                }
+                    .show()
+            } else {
+                // Chequera que tenga internet porque no se va a poder hacer nada sino
+                // ACCESS_NETWORK_STATE permission
+                recognitionFlow(detected)
             }
         }
     }
