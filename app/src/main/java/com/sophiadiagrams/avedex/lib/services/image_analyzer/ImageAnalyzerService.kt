@@ -3,6 +3,7 @@ package com.sophiadiagrams.avedex.lib.services.image_analyzer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.util.Log
 import com.sophiadiagrams.avedex.ml.BirdsClassifier
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.label.Category
@@ -30,12 +31,13 @@ class ImageAnalyzerService(val context: Context) {
             if (detectedObject.categories.map { it.label }.any { it == "bird" }) {
                 val boundingBox = Rect()
                 detectedObject.boundingBox.round(boundingBox)
+                val padding = 60
                 return Bitmap.createBitmap(
                     bitmap,
-                    boundingBox.left - 60,
-                    boundingBox.top - 60,
-                    boundingBox.width() + 120,
-                    boundingBox.height() + 120
+                    boundingBox.left - padding,
+                    boundingBox.top - padding,
+                    boundingBox.width() + 2 * padding, // Es dos veces el padding porque tiene que compensar de ambos lados
+                    boundingBox.height() + 2 * padding
                 )
             }
         }
@@ -49,7 +51,7 @@ class ImageAnalyzerService(val context: Context) {
         val outputs = model.process(image)
         val result = outputs.probabilityAsCategoryList.maxBy { it.score }
         model.close()
-        return if (result.label != "None" && result.score >= 0.85) result
+        return if (result.label != "None" && result.score >= 0.5) result
         else null
     }
 }
