@@ -4,7 +4,9 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.dialog.MaterialDialogs
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -198,23 +201,44 @@ class CameraFragment : Fragment() {
         else {
             val picture = fotoapparat!!.takePicture()
             picture.toBitmap().whenAvailable {
+                fun recognitionFlow(b: Bitmap) {
+                    val recognized = ia.classify(b)
+                    if (recognized == null) {
+                        MaterialAlertDialogBuilder(mContext).setTitle("Whoops")
+                            .setIcon(R.drawable.ic_bird)
+                            .setMessage("Our AI was unable to recognize the species of the bird on the photo you took.")
+                            .setPositiveButton("Ok", null)
+                            .show()
+                    } else {
+                        RecognizedBirdDialogFragment(
+                            recognized.label,
+                            b,
+                            requireActivity()
+                        ).show(
+                            requireActivity().supportFragmentManager,
+                            "Bird Recognition Dialog"
+                        )
+                    }
+                }
+
                 val bitmap = if (it!!.rotationDegrees != 0) ia.utils.rotateBitmap(
                     it.bitmap,
                     it.rotationDegrees
                 ) else it.bitmap
                 val detected = ia.detect(bitmap)
                 if (detected == null) {
-                    //handle no bird state, probably a toast or something like that
+                    MaterialAlertDialogBuilder(mContext).setTitle("No bird found")
+                        .setIcon(R.drawable.ic_bird)
+                        .setMessage("Our AI was unable to find any bird on the photo you took. If you think this is a mistake you can continue but there is no guarantee that the species recognition will work properly.")
+                        .setPositiveButton("Take another picture", null)
+                        .setNegativeButton("Continue anyways") { _, _ ->
+                            recognitionFlow(bitmap)
+                        }
+                        .show()
                 } else {
                     // CHeuquera que teng a internet porque no se va a poder hacer nada sino
                     // ACCESS_NETWORK_STATE permission
-                    val recognized = ia.classify(detected)
-                    if (recognized != null) {
-                        RecognizedBirdDialogFragment(recognized.label, detected, requireActivity()).show(
-                            requireActivity().supportFragmentManager,
-                            "Bird Recognition Dialog"
-                        )
-                    }
+                    recognitionFlow(detected)
                 }
             }
         }
