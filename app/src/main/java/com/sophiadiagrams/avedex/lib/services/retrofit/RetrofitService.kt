@@ -1,5 +1,6 @@
 package com.sophiadiagrams.avedex.lib.services.retrofit
 
+import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
