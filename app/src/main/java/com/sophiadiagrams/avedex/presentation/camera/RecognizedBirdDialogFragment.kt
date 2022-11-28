@@ -1,6 +1,7 @@
 package com.sophiadiagrams.avedex.presentation.camera
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
@@ -24,6 +25,7 @@ import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
+import org.checkerframework.checker.nullness.qual.NonNull
 import java.util.*
 
 class RecognizedBirdDialogFragment(
@@ -40,6 +42,12 @@ class RecognizedBirdDialogFragment(
     private val analyzePictureJob = SupervisorJob()
     private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
 
+    private var act: Activity? = null
+
+    override fun onAttach( context: Context) {
+        super.onAttach(context)
+        act = if (context is Activity) context else null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +76,6 @@ class RecognizedBirdDialogFragment(
                 uiScope.launch(Dispatchers.IO) {
                     handleAcceptRecognition()
                 }
-
             }
 
             btnNo.setOnClickListener {
@@ -91,7 +98,8 @@ class RecognizedBirdDialogFragment(
                 "discoveryTime" to SimpleDateFormat(
                     "dd/MM/yyyy",
                     Locale.getDefault()
-                ).format(Date())
+                ).format(Date()),
+                "description" to bird.description
             )
             val documentReference = fb.db.collection("birds").document()
             fb.db.collection(FirebaseConstants.BIRDS_COLLECTION)
@@ -101,7 +109,7 @@ class RecognizedBirdDialogFragment(
                         documentReference.set(document)
                             .addOnSuccessListener {
                                 Log.d("FB", "Bird successfully written in the db!")
-                                l.updateLocation(requireContext(), documentReference)
+                                l.updateLocation(act!!.applicationContext, documentReference)
                             }
                             .addOnFailureListener { e -> Log.w("FB", "Error writing document", e) }
                     } else alreadyOnAvedex = true
@@ -112,13 +120,13 @@ class RecognizedBirdDialogFragment(
                 Toast.makeText(
                     context,
                     "The bird is already on your Avedex",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
                 ).show()
             else
                 Toast.makeText(
                     context,
                     "The recognized bird was added to you AveDex",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
                 ).show()
             dismiss()
         }

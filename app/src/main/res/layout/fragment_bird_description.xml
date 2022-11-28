@@ -8,6 +8,6 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Bird Description Fragment" />
+        android:text="@string/bird_description_fragment" />
 
 </FrameLayout>

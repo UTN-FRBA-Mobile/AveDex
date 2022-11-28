@@ -16,4 +16,11 @@
     <string name="avedex__image_content">Bird image</string>
     <string name="avedex__header">Your Avedex</string>
     <string name="bird_dialog__subtitle">Descubierto en</string>
+    <string name="bird_description_fragment">Bird Description Fragment</string>
+    <string name="cuervo">Cuervo</string>
+    <string name="your_bird">Your bird</string>
+    <string name="real_bird">Real bird</string>
+    <string name="is_it_the_same_bird">Is it the same bird?</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
 </resources>

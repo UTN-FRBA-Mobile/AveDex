@@ -13,8 +13,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.MenuRes
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
@@ -53,6 +54,7 @@ class CameraFragment : Fragment() {
         Manifest.permission.INTERNET,
         Manifest.permission.ACCESS_NETWORK_STATE
     )
+
     private var fotoapparat: Fotoapparat? = null
 
     private var user = User()
@@ -62,6 +64,19 @@ class CameraFragment : Fragment() {
 
     private val analyzePictureJob = SupervisorJob()
     private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
+
+    private var activityResultLauncher: ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { result ->
+            var allPermissionsGranted = true
+            for (b in result.values) {
+                allPermissionsGranted = allPermissionsGranted && b
+            }
+            if (allPermissionsGranted)
+                Navigation.findNavController(binding.root).navigate(R.id.cameraFragment)
+        }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -101,10 +116,13 @@ class CameraFragment : Fragment() {
         // Está acá y no en el onCreate porque necesita que el contexto esté inicializado
         ia = ImageAnalyzerService(mContext)
         getUser(view)
-        if (hasNoPermissions()) requestPermissions()
-        initCamera()
-        fotoapparatState = FotoapparatState.ON
-        initListeners()
+        if (hasNoPermissions())
+            requestPermissions()
+        else {
+            initCamera()
+            fotoapparatState = FotoapparatState.ON
+            initListeners()
+        }
     }
 
     private fun getUser(v: View) {
@@ -194,7 +212,7 @@ class CameraFragment : Fragment() {
             Toast.makeText(
                 mContext,
                 "Initializing camera, please wait a second and try again",
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             ).show()
             initCamera()
             return
@@ -236,6 +254,11 @@ class CameraFragment : Fragment() {
         val detected = ia.detect(bitmap)
 
         withContext(Dispatchers.Main) {
+            Toast.makeText(
+                mContext,
+                "Your photo is being processed. Please wait...",
+                Toast.LENGTH_LONG
+            ).show()
             if (detected == null) {
                 MaterialAlertDialogBuilder(mContext).setTitle("No bird found")
                     .setIcon(R.drawable.ic_bird).setMessage(
@@ -270,7 +293,7 @@ class CameraFragment : Fragment() {
         MaterialAlertDialogBuilder(mContext).setTitle("About permissions")
             .setMessage("Please allow Avedex to use your device's location and camera. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
             .setIcon(R.drawable.ic_logo).setPositiveButton("Continue") { dialog, _ ->
-                ActivityCompat.requestPermissions(requireActivity(), permissions, 0)
+                activityResultLauncher.launch(permissions)
                 dialog.cancel()
             }.show()
     }
