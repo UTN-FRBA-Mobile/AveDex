@@ -44,6 +44,7 @@ class RecognizedBirdDialogFragment(
 
     private var act: Activity? = null
 
+
     override fun onAttach( context: Context) {
         super.onAttach(context)
         act = if (context is Activity) context else null

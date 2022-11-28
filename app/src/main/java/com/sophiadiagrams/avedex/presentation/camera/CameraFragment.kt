@@ -2,6 +2,7 @@ package com.sophiadiagrams.avedex.presentation.camera
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,9 +14,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.MenuRes
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
@@ -54,7 +54,6 @@ class CameraFragment : Fragment() {
         Manifest.permission.INTERNET,
         Manifest.permission.ACCESS_NETWORK_STATE
     )
-
     private var fotoapparat: Fotoapparat? = null
 
     private var user = User()
@@ -64,19 +63,6 @@ class CameraFragment : Fragment() {
 
     private val analyzePictureJob = SupervisorJob()
     private val uiScope = CoroutineScope(Dispatchers.Main + analyzePictureJob)
-
-    private var activityResultLauncher: ActivityResultLauncher<Array<String>> =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { result ->
-            var allPermissionsGranted = true
-            for (b in result.values) {
-                allPermissionsGranted = allPermissionsGranted && b
-            }
-            if (allPermissionsGranted)
-                Navigation.findNavController(binding.root).navigate(R.id.cameraFragment)
-        }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -92,14 +78,6 @@ class CameraFragment : Fragment() {
         fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!hasNoPermissions() && fotoapparatState == FotoapparatState.OFF) {
-            val intent = Intent(mContext, CameraFragment::class.java)
-            startActivity(intent)
-        }
-    }
-
     override fun onStart() {
         super.onStart()
         fotoapparat?.start()
@@ -110,19 +88,28 @@ class CameraFragment : Fragment() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>,
+                                            grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 0) {
+            if (grantResults.isNotEmpty() && grantResults.all { p->p == PackageManager.PERMISSION_GRANTED}) {
+                Navigation.findNavController(binding.root)
+                    .navigate(R.id.cameraFragment)
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // Está acá y no en el onCreate porque necesita que el contexto esté inicializado
         ia = ImageAnalyzerService(mContext)
         getUser(view)
-        if (hasNoPermissions())
-            requestPermissions()
-        else {
-            initCamera()
-            fotoapparatState = FotoapparatState.ON
-            initListeners()
-        }
+        if (hasNoPermissions()) requestPermissions()
+        initCamera()
+        fotoapparatState = FotoapparatState.ON
+        initListeners()
     }
 
     private fun getUser(v: View) {
@@ -293,7 +280,7 @@ class CameraFragment : Fragment() {
         MaterialAlertDialogBuilder(mContext).setTitle("About permissions")
             .setMessage("Please allow Avedex to use your device's location and camera. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
             .setIcon(R.drawable.ic_logo).setPositiveButton("Continue") { dialog, _ ->
-                activityResultLauncher.launch(permissions)
+                requestPermissions( permissions, 0)
                 dialog.cancel()
             }.show()
     }

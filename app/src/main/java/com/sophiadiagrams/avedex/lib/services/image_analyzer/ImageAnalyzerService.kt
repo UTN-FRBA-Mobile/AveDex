@@ -19,121 +19,6 @@ import org.tensorflow.lite.task.vision.detector.ObjectDetector
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-
-
-class ImageAnalyzerService(val context: Context) {
-    var utils = Utils
-    private var retrofit = RetrofitService()
-    private val options = ObjectDetector.ObjectDetectorOptions.builder()
-        .setMaxResults(5)
-        .setScoreThreshold(0.3f)
-        .build()
-
-    private val objectDetector = ObjectDetector.createFromFileAndOptions(
-        this.context,
-        "object-detector.tflite",
-        options
-    )
-
-    private var birdClassifier: Interpreter? = null
-
-    init {
-        val conditions = CustomModelDownloadConditions.Builder()
-            .requireWifi()
-            .build()
-        FirebaseModelDownloader.getInstance()
-            .getModel(
-                "avedex", DownloadType.LOCAL_MODEL_UPDATE_IN_BACKGROUND,
-                conditions
-            )
-            .addOnSuccessListener { model: CustomModel? ->
-                val modelFile = model?.file
-                if (modelFile != null) {
-                    birdClassifier = Interpreter(modelFile)
-                }
-            }
-    }
-
-    fun detect(bitmap: Bitmap): Bitmap? {
-        val image = TensorImage.fromBitmap(bitmap)
-        val results = objectDetector.detect(image)
-        for (detectedObject in results) {
-            if (detectedObject.categories.map { it.label }.any { it == "bird" }) {
-                val boundingBox = Rect()
-                detectedObject.boundingBox.round(boundingBox)
-                val padding = 60
-
-                val x = boundingBox.left - padding
-                val y = boundingBox.top - padding
-
-                return Bitmap.createBitmap(
-                    bitmap,
-                    if(x>=0) x else 0,
-                    if(y>=0) y else 0,
-                    boundingBox.width() + 2 * padding, // Es dos veces el padding porque tiene que compensar de ambos lados
-                    boundingBox.height() + 2 * padding
-                )
-            }
-        }
-        return null
-    }
-
-    private fun createBitmapForXception(bitmap: Bitmap): ByteBuffer {
-        val input = ByteBuffer.allocateDirect(224 * 224 * 3 * 4).order(ByteOrder.nativeOrder())
-        for (y in 0 until 224) {
-            for (x in 0 until 224) {
-                val px = bitmap.getPixel(x, y)
-                val r = Color.red(px)
-                val g = Color.green(px)
-                val b = Color.blue(px)
-                val rf = (r - 127) / 255f
-                val gf = (g - 127) / 255f
-                val bf = (b - 127) / 255f
-                input.putFloat(rf)
-                input.putFloat(gf)
-                input.putFloat(bf)
-            }
-        }
-        return input
-    }
-
-    suspend fun classify(bitmap: Bitmap): BirdsResponse? {
-        var recognizedBird = ""
-        if (birdClassifier == null) {
-            val input = createBitmapForXception(bitmap)
-            val bufferSize = 450 * java.lang.Float.SIZE / java.lang.Byte.SIZE
-            val modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder())
-            birdClassifier?.run(input, modelOutput)
-            modelOutput.rewind()
-            var recognizedProbability = .0
-            val probabilities = modelOutput.asFloatBuffer()
-            for (i in 0 until probabilities.capacity()) {
-                val prob = probabilities.get(i)
-                if (prob > recognizedProbability) {
-                    recognizedProbability = prob.toDouble()
-                    recognizedBird = BIRDS_NAMES[i]
-                }
-            }
-        } else {
-            val model = Avedex.newInstance(context)
-            val input =
-                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-            input.loadBuffer(createBitmapForXception(bitmap))
-            val outputs = model.process(input)
-            val outputFeature = outputs.outputFeature0AsTensorBuffer.floatArray
-            model.close()
-            var recognizedProbability = .0
-            for ((i, prob) in outputFeature.withIndex()) {
-                if (prob > recognizedProbability) {
-                    recognizedProbability = prob.toDouble()
-                    recognizedBird = BIRDS_NAMES[i]
-                }
-            }
-        }
-        return retrofit.postBirdsData(recognizedBird)
-    }
-}
-
 val BIRDS_NAMES: List<String> = listOf(
     "ABBOTTS BABBLER",
     "ABBOTTS BOOBY",
@@ -586,3 +471,122 @@ val BIRDS_NAMES: List<String> = listOf(
     "YELLOW CACIQUE",
     "YELLOW HEADED BLACKBIRD",
 )
+
+class ImageAnalyzerService(val context: Context) {
+    var utils = Utils
+    private var retrofit = RetrofitService()
+    private val options = ObjectDetector.ObjectDetectorOptions.builder()
+        .setMaxResults(5)
+        .setScoreThreshold(0.3f)
+        .build()
+
+    private val objectDetector = ObjectDetector.createFromFileAndOptions(
+        this.context,
+        "object-detector.tflite",
+        options
+    )
+
+    private var birdClassifier: Interpreter? = null
+
+    init {
+        val conditions = CustomModelDownloadConditions.Builder()
+            .requireWifi()
+            .build()
+        FirebaseModelDownloader.getInstance()
+            .getModel(
+                "avedex", DownloadType.LOCAL_MODEL_UPDATE_IN_BACKGROUND,
+                conditions
+            )
+            .addOnSuccessListener { model: CustomModel? ->
+                val modelFile = model?.file
+                if (modelFile != null) {
+                    birdClassifier = Interpreter(modelFile)
+                }
+            }
+    }
+
+    fun detect(bitmap: Bitmap): Bitmap? {
+        val image = TensorImage.fromBitmap(bitmap)
+        val results = objectDetector.detect(image)
+        for (detectedObject in results) {
+            if (detectedObject.categories.map { it.label }.any { it == "bird" }) {
+                val boundingBox = Rect()
+                detectedObject.boundingBox.round(boundingBox)
+                val padding = 60
+
+                val x = boundingBox.left - padding
+                val y = boundingBox.top - padding
+
+                return Bitmap.createBitmap(
+                    bitmap,
+                    if(x>=0) x else 0,
+                    if(y>=0) y else 0,
+                    boundingBox.width() + 2 * padding, // Es dos veces el padding porque tiene que compensar de ambos lados
+                    boundingBox.height() + 2 * padding
+                )
+            }
+        }
+        return null
+    }
+
+    private fun createBitmapForXception(bitmap: Bitmap): ByteBuffer {
+        val input = ByteBuffer.allocateDirect(224 * 224 * 3 * 4).order(ByteOrder.nativeOrder())
+        for (y in 0 until 224) {
+            for (x in 0 until 224) {
+                val px = bitmap.getPixel(x, y)
+                val r = Color.red(px)
+                val g = Color.green(px)
+                val b = Color.blue(px)
+                val rf = (r - 127) / 255f
+                val gf = (g - 127) / 255f
+                val bf = (b - 127) / 255f
+                input.putFloat(rf)
+                input.putFloat(gf)
+                input.putFloat(bf)
+            }
+        }
+        return input
+    }
+
+    suspend fun classify(bitmap: Bitmap): BirdsResponse? {
+        var recognizedBird = ""
+        if (birdClassifier == null) {
+            val input = createBitmapForXception(bitmap)
+//            val bytes = bitmap.byteCount;
+//            val input = ByteBuffer.allocate(bytes);
+//            bitmap.copyPixelsToBuffer(input)
+
+            val bufferSize = 450 * java.lang.Float.SIZE / java.lang.Byte.SIZE
+            val modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder())
+            birdClassifier?.run(input, modelOutput)
+            modelOutput.rewind()
+            var recognizedProbability = .0
+            val probabilities = modelOutput.asFloatBuffer()
+            for (i in 0 until probabilities.capacity()) {
+                val prob = probabilities.get(i)
+                if (prob > recognizedProbability) {
+                    recognizedProbability = prob.toDouble()
+                    recognizedBird = BIRDS_NAMES[i]
+                }
+            }
+        } else {
+            val model = Avedex.newInstance(context)
+            val input =
+                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
+            input.loadBuffer(createBitmapForXception(bitmap))
+            val outputs = model.process(input)
+            val outputFeature = outputs.outputFeature0AsTensorBuffer.floatArray
+            model.close()
+            var recognizedProbability = .0
+            for ((i, prob) in outputFeature.withIndex()) {
+                if (prob > recognizedProbability) {
+                    recognizedProbability = prob.toDouble()
+                    recognizedBird = BIRDS_NAMES[i]
+                }
+            }
+        }
+        return retrofit.postBirdsData(recognizedBird)
+    }
+}
+
+
