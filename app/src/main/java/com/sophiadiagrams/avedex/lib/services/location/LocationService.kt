@@ -15,15 +15,20 @@ class LocationService(private var fusedLocationClient: FusedLocationProviderClie
     @SuppressLint("MissingPermission") // PORQUE SE PIDE EN LA CAMARA LOS PERMISOS DE LOCATION
     fun updateLocation(context: Context, document: DocumentReference) {
         fusedLocationClient.lastLocation.addOnSuccessListener {
-            Log.d("LOCATION", "$it")
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses: List<Address> =
-                geocoder.getFromLocation(
-                    it!!.latitude,
-                    it.longitude,
-                    1
-                ) as List<Address>
-            val country = if(addresses[0].countryName!=null) addresses[0].countryName else "Location not found"
+            val country:String
+            if(it==null)
+                country="Narnia"
+            else{
+                Log.d("LOCATION", "$it")
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses: List<Address> =
+                    geocoder.getFromLocation(
+                        it!!.latitude,
+                        it.longitude,
+                        1
+                    ) as List<Address>
+                country = if(addresses[0].countryName!=null) addresses[0].countryName else "Narnia"
+            }
             val data = hashMapOf(
                 "discoveryLocation" to country
             )
