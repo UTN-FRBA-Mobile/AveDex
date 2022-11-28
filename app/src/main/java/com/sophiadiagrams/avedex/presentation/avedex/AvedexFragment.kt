@@ -60,8 +60,10 @@ class AvedexFragment : Fragment() {
                             .whereEqualTo("user", user.uid).get()
                             .addOnSuccessListener { documents ->
                                 if (documents.size() != 0) {
+                                    if(recognizedBirds.size<documents.size())
                                     recognizedBirds.addAll(documents.toObjects(Bird::class.java))
                                     birdsRVAdapter.notifyDataSetChanged()
+                                    binding.birdsCounter.text = "${recognizedBirds.size}/450"
                                 }
                             }
                     }
@@ -94,6 +96,7 @@ class AvedexFragment : Fragment() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initListeners() {
+
 
         with(binding) {
             // Gestures to swipe to camera

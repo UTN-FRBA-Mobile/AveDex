@@ -25,7 +25,6 @@ import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.util.FirebaseConstants
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
-import org.checkerframework.checker.nullness.qual.NonNull
 import java.util.*
 
 class RecognizedBirdDialogFragment(

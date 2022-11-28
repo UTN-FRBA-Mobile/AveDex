@@ -11,14 +11,11 @@ import com.google.firebase.ml.modeldownloader.FirebaseModelDownloader
 import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.services.retrofit.RetrofitService
 import com.sophiadiagrams.avedex.ml.Avedex
-import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
 
 
 class ImageAnalyzerService(val context: Context) {
@@ -116,19 +113,11 @@ class ImageAnalyzerService(val context: Context) {
             }
         } else {
             val model = Avedex.newInstance(context)
-            val input =
-                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-            input.loadBuffer(createBitmapForXception(bitmap))
+            val input = TensorImage.fromBitmap(bitmap)
             val outputs = model.process(input)
-            val outputFeature = outputs.outputFeature0AsTensorBuffer.floatArray
+            val probabilities = outputs.probabilityAsCategoryList
             model.close()
-            var recognizedProbability = .0
-            for ((i, prob) in outputFeature.withIndex()) {
-                if (prob > recognizedProbability) {
-                    recognizedProbability = prob.toDouble()
-                    recognizedBird = BIRDS_NAMES[i]
-                }
-            }
+            recognizedBird = probabilities.maxBy { a -> a.score }.displayName
         }
         return retrofit.postBirdsData(recognizedBird)
     }

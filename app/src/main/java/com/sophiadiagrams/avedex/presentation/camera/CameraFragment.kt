@@ -2,9 +2,7 @@ package com.sophiadiagrams.avedex.presentation.camera
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -284,7 +282,7 @@ class CameraFragment : Fragment() {
 
     private fun requestPermissions() {
         MaterialAlertDialogBuilder(mContext).setTitle("About permissions")
-            .setMessage("Please allow Avedex to use your device's location and camera or you won't be able to take photos. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
+            .setMessage("Please allow Avedex to use your device's location and camera or you won't be able to start your AveDex journey. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
             .setIcon(R.drawable.ic_logo).setPositiveButton("Continue") { dialog, _ ->
                 requestPermissions( permissions, ALL_PERMISSIONS_CODE)
                 dialog.cancel()
