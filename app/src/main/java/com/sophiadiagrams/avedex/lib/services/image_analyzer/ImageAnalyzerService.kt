@@ -96,7 +96,7 @@ class ImageAnalyzerService(val context: Context) {
 
     suspend fun classify(bitmap: Bitmap): BirdsResponse? {
         var recognizedBird = ""
-        if (birdClassifier == null) {
+        if (birdClassifier != null) {
             val input = createBitmapForXception(bitmap)
             val bufferSize = 450 * java.lang.Float.SIZE / java.lang.Byte.SIZE
             val modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder())
