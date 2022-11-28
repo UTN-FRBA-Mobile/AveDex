@@ -567,19 +567,11 @@ class ImageAnalyzerService(val context: Context) {
             }
         } else {
             val model = Avedex.newInstance(context)
-            val input =
-                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-            input.loadBuffer(createBitmapForXception(bitmap))
+            val input = TensorImage.fromBitmap(bitmap)
             val outputs = model.process(input)
-            val outputFeature = outputs.outputFeature0AsTensorBuffer.floatArray
+            val probabilities = outputs.probabilityAsCategoryList
             model.close()
-            var recognizedProbability = .0
-            for ((i, prob) in outputFeature.withIndex()) {
-                if (prob > recognizedProbability) {
-                    recognizedProbability = prob.toDouble()
-                    recognizedBird = BIRDS_NAMES[i]
-                }
-            }
+            recognizedBird = probabilities.maxBy { a -> a.score }.displayName
         }
         return retrofit.postBirdsData(recognizedBird)
     }
