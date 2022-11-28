@@ -23,8 +23,9 @@ class LocationService(private var fusedLocationClient: FusedLocationProviderClie
                     it.longitude,
                     1
                 ) as List<Address>
+            val country = if(addresses[0].countryName!=null) addresses[0].countryName else "Location not found"
             val data = hashMapOf(
-                "discoveryLocation" to addresses[0].countryName
+                "discoveryLocation" to country
             )
             document.set(data, SetOptions.merge())
             Log.d("FB", "Location successfully written in the db!")

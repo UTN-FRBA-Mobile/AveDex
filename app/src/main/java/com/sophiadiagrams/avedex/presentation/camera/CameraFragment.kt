@@ -46,7 +46,7 @@ class CameraFragment : Fragment() {
     private val binding get() = _binding!!
     private var _mContext: Context? = null
     private val mContext get() = _mContext!!
-
+    private val ALL_PERMISSIONS_CODE = 0
     private val permissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -92,7 +92,7 @@ class CameraFragment : Fragment() {
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 0) {
+        if (requestCode == ALL_PERMISSIONS_CODE) {
             if (grantResults.isNotEmpty() && grantResults.all { p->p == PackageManager.PERMISSION_GRANTED}) {
                 Navigation.findNavController(binding.root)
                     .navigate(R.id.cameraFragment)
@@ -128,7 +128,11 @@ class CameraFragment : Fragment() {
     private fun initListeners() {
         with(binding) {
             // Button to take picture
-            fabCamera.setOnClickListener { uiScope.launch(Dispatchers.IO) { takePhoto() } }
+            fabCamera.setOnClickListener { uiScope.launch(Dispatchers.IO) {
+                if(!hasNoPermissions())
+                    takePhoto()
+                }
+            }
 
             // Account menu button
             ivAccount.setOnClickListener { v: View -> showAccountMenu(v, R.menu.account_menu) }
@@ -213,6 +217,13 @@ class CameraFragment : Fragment() {
     }
 
     private suspend fun recognitionFlow(b: Bitmap) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(
+                mContext,
+                "Your photo is being processed. Please wait...",
+                Toast.LENGTH_LONG
+            ).show()
+        }
         coroutineScope {
             val birdRecognized = ia.classify(b)
             withContext(Dispatchers.Main) {
@@ -241,11 +252,6 @@ class CameraFragment : Fragment() {
         val detected = ia.detect(bitmap)
 
         withContext(Dispatchers.Main) {
-            Toast.makeText(
-                mContext,
-                "Your photo is being processed. Please wait...",
-                Toast.LENGTH_LONG
-            ).show()
             if (detected == null) {
                 MaterialAlertDialogBuilder(mContext).setTitle("No bird found")
                     .setIcon(R.drawable.ic_bird).setMessage(
@@ -278,9 +284,9 @@ class CameraFragment : Fragment() {
 
     private fun requestPermissions() {
         MaterialAlertDialogBuilder(mContext).setTitle("About permissions")
-            .setMessage("Please allow Avedex to use your device's location and camera. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
+            .setMessage("Please allow Avedex to use your device's location and camera or you won't be able to take photos. We will not share your data with anyone and it will ONLY be stored when you recognize a bird and accept its recognition.")
             .setIcon(R.drawable.ic_logo).setPositiveButton("Continue") { dialog, _ ->
-                requestPermissions( permissions, 0)
+                requestPermissions( permissions, ALL_PERMISSIONS_CODE)
                 dialog.cancel()
             }.show()
     }
