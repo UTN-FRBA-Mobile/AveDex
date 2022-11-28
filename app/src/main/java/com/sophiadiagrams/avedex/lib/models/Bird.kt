@@ -1,4 +1,9 @@
 package com.sophiadiagrams.avedex.lib.models
 
-// TODO: borrar los valores por default
-data class Bird(val name: String = "", val discoveryLocation: String = "Argentina", val discoveryTime: String = "23.01.2023")
+// FIREBASE NECESITA QUE TENGA UN CONSTRUCTOR VACIO O TODSO DEFAULT VALUES
+data class Bird(
+    val user: String? = null,
+    val name: String = "",
+    val discoveryLocation: String? = null,
+    val discoveryTime: String? = null
+)

@@ -3,4 +3,15 @@
     <style name="Theme.AveDex" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
     </style>
+    <style name="CornerRounded" parent="">
+        <item name="cornerFamilyTopLeft">rounded</item>
+        <item name="cornerFamilyTopRight">rounded</item>
+        <item name="cornerFamilyBottomLeft">rounded</item>
+        <item name="cornerFamilyBottomRight">rounded</item>
+        <item name="cornerSizeTopLeft">25%</item>
+        <item name="cornerSizeTopRight">25%</item>
+        <item name="cornerSizeBottomLeft">25%</item>
+        <item name="cornerSizeBottomRight">25%</item>
+
+    </style>
 </resources>

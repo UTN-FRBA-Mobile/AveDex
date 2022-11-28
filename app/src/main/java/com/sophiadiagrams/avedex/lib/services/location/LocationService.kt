@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
 import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.DocumentReference
@@ -24,12 +23,8 @@ class LocationService(private var fusedLocationClient: FusedLocationProviderClie
                     it.longitude,
                     1
                 ) as List<Address>
-            val city = addresses[0].locality
-            val state = addresses[0].adminArea
-            val country = addresses[0].countryName
-            val loc = "$city, $state, $country"
             val data = hashMapOf(
-                "location" to loc
+                "discoveryLocation" to addresses[0].countryName
             )
             document.set(data, SetOptions.merge())
             Log.d("FB", "Location successfully written in the db!")
