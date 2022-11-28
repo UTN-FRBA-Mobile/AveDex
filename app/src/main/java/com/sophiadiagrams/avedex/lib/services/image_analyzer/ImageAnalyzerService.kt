@@ -490,7 +490,7 @@ class ImageAnalyzerService(val context: Context) {
 
     init {
         val conditions = CustomModelDownloadConditions.Builder()
-            .requireWifi()  // Also possible: .requireCharging() and .requireDeviceIdle()
+            .requireWifi()
             .build()
         FirebaseModelDownloader.getInstance()
             .getModel(
@@ -547,7 +547,11 @@ class ImageAnalyzerService(val context: Context) {
     suspend fun classify(bitmap: Bitmap): BirdsResponse? {
         var recognizedBird = ""
         if (birdClassifier == null) {
-            val input = createBitmapForXception(bitmap)
+//            val input = createBitmapForXception(bitmap)
+            val bytes = bitmap.byteCount;
+            val input = ByteBuffer.allocate(bytes);
+            bitmap.copyPixelsToBuffer(input)
+
             val bufferSize = 450 * java.lang.Float.SIZE / java.lang.Byte.SIZE
             val modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder())
             birdClassifier?.run(input, modelOutput)
