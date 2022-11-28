@@ -68,6 +68,7 @@ class RecognizedBirdDialogFragment(
                 uiScope.launch(Dispatchers.IO) {
                     handleAcceptRecognition()
                 }
+
             }
 
             btnNo.setOnClickListener {

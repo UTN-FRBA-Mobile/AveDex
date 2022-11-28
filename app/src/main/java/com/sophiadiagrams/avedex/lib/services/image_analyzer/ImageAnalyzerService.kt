@@ -575,4 +575,3 @@ class ImageAnalyzerService(val context: Context) {
         }
         return retrofit.postBirdsData(recognizedBird)
     }
-}
