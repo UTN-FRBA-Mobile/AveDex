@@ -60,12 +60,15 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-task-vision:0.3.1'
     implementation 'org.tensorflow:tensorflow-lite-support:0.3.1'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.3.1'
+    implementation platform('com.google.firebase:firebase-bom:31.1.0')
+    implementation 'com.google.firebase:firebase-ml-modeldownloader-ktx'
+    implementation 'org.tensorflow:tensorflow-lite:2.7.0'
 
     // Location services
     implementation 'com.google.android.gms:play-services-location:21.0.1'
 
     // Threads
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
 
     // Retrofit
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
