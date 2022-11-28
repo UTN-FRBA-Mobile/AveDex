@@ -61,7 +61,7 @@ class AvedexFragment : Fragment() {
                             .addOnSuccessListener { documents ->
                                 if (documents.size() != 0) {
                                     if(recognizedBirds.size<documents.size())
-                                    recognizedBirds.addAll(documents.toObjects(Bird::class.java))
+                                        recognizedBirds.addAll(documents.toObjects(Bird::class.java))
                                     birdsRVAdapter.notifyDataSetChanged()
                                     binding.birdsCounter.text = "${recognizedBirds.size}/450"
                                 }
