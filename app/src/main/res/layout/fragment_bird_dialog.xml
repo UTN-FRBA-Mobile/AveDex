@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        android:layout_marginTop="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -22,7 +23,8 @@
         android:id="@+id/ll_imageAndMetadata"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_title">
@@ -32,12 +34,14 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:theme="@style/CornerRounded"
             android:src="@drawable/ic_bird" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="17dp"
             android:orientation="vertical">
 
             <TextView
@@ -56,9 +60,10 @@
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/iv_camera"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_location"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/placeholder"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -81,9 +86,9 @@
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/iv_clock"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_location"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/calendar"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -103,7 +108,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ll_imageAndMetadata"
         app:layout_constraintVertical_chainStyle="packed">

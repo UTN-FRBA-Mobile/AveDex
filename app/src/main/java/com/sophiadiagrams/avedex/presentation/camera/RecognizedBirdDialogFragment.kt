@@ -65,7 +65,10 @@ class RecognizedBirdDialogFragment(
     private fun initListeners() {
         with(binding) {
             btnYes.setOnClickListener {
-                uiScope.launch(Dispatchers.IO) { handleAcceptRecognition() }
+                uiScope.launch(Dispatchers.IO) {
+                    handleAcceptRecognition()
+                }
+
             }
 
             btnNo.setOnClickListener {
@@ -74,27 +77,50 @@ class RecognizedBirdDialogFragment(
                     "Thanks for your feedback, we will use it to improve our AI",
                     Toast.LENGTH_SHORT
                 ).show()
+                dismiss()
             }
         }
     }
 
     private suspend fun handleAcceptRecognition() {
+        var alreadyOnAvedex = false
         coroutineScope {
             val document = hashMapOf(
                 "user" to user.uid,
                 "name" to bird.name,
-                "time" to SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
+                "discoveryTime" to SimpleDateFormat(
+                    "dd/MM/yyyy",
                     Locale.getDefault()
                 ).format(Date())
             )
             val documentReference = fb.db.collection("birds").document()
-            documentReference.set(document)
-                .addOnSuccessListener {
-                    Log.d("FB", "Bird successfully written in the db!")
-                    l.updateLocation(requireContext(), documentReference)
+            fb.db.collection(FirebaseConstants.BIRDS_COLLECTION)
+                .whereEqualTo("user", user.uid).whereEqualTo("name", bird.name).get()
+                .addOnSuccessListener { documents ->
+                    if (documents.size() == 0) {
+                        documentReference.set(document)
+                            .addOnSuccessListener {
+                                Log.d("FB", "Bird successfully written in the db!")
+                                l.updateLocation(requireContext(), documentReference)
+                            }
+                            .addOnFailureListener { e -> Log.w("FB", "Error writing document", e) }
+                    } else alreadyOnAvedex = true
                 }
-                .addOnFailureListener { e -> Log.w("FB", "Error writing document", e) }
+
+        }.addOnCompleteListener {
+            if (alreadyOnAvedex)
+                Toast.makeText(
+                    context,
+                    "The bird is already on your Avedex",
+                    Toast.LENGTH_SHORT
+                ).show()
+            else
+                Toast.makeText(
+                    context,
+                    "The recognized bird was added to you AveDex",
+                    Toast.LENGTH_SHORT
+                ).show()
+            dismiss()
         }
 
     }
@@ -105,7 +131,7 @@ class RecognizedBirdDialogFragment(
             ivBird.setImageBitmap(birdPicture)
             Picasso.get().load("https://avedex.bepi.tech/${bird.url}")
                 .placeholder(R.drawable.ic_bird).into(ivRecognizedBird)
-            tvDescription.text = bird.description
+            // tvDescription.text = bird.description
         }
     }
 

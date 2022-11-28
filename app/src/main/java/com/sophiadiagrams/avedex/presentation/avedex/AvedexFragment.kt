@@ -6,17 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.GridLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
-import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.databinding.FragmentAvedexBinding
 import com.sophiadiagrams.avedex.lib.models.Bird
 import com.sophiadiagrams.avedex.lib.models.User
@@ -33,15 +28,14 @@ class AvedexFragment : Fragment() {
 
     private lateinit var birdsRVAdapter: BirdsRVAdapter
     private var user = User()
+    private var recognizedBirds: MutableList<Bird> = mutableListOf()
     private lateinit var fb: FirebaseService
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAvedexBinding.inflate(inflater, container, false)
         _mContext = requireContext()
-
         return binding.root
     }
 
@@ -50,6 +44,7 @@ class AvedexFragment : Fragment() {
         fb = FirebaseService(Firebase.auth, Firebase.firestore, Firebase.storage)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
@@ -58,9 +53,17 @@ class AvedexFragment : Fragment() {
             activity?.onBackPressedDispatcher?.onBackPressed()
         } else {
             fb.db.collection(FirebaseConstants.USERS_COLLECTION).document(currentUser.uid).get()
-                .addOnCompleteListener {
+                .addOnCompleteListener { it ->
                     if (it.isSuccessful) {
                         user = it.result.toObject(User::class.java)!!
+                        fb.db.collection(FirebaseConstants.BIRDS_COLLECTION)
+                            .whereEqualTo("user", user.uid).get()
+                            .addOnSuccessListener { documents ->
+                                if (documents.size() != 0) {
+                                    recognizedBirds.addAll(documents.toObjects(Bird::class.java))
+                                    birdsRVAdapter.notifyDataSetChanged()
+                                }
+                            }
                     }
                 }
         }
@@ -68,46 +71,24 @@ class AvedexFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initListeners()
         initAdapter()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun initAdapter() {
         val layoutManager = GridLayoutManager(mContext, 3)
-
         with(binding) {
             rvAvedex.layoutManager = layoutManager
-            birdsRVAdapter = BirdsRVAdapter(user.recognizedBirds, user.uid, fb.storage)
+            birdsRVAdapter = BirdsRVAdapter(recognizedBirds, user.uid)
             rvAvedex.adapter = birdsRVAdapter
         }
-
         birdsRVAdapter.onItemClick = {
             BirdDialogFragment(
                 it,
-                "https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f"
+                "https://avedex.bepi.tech/birds/${it.name}.jpg"
             ).show(requireActivity().supportFragmentManager, "Bird Dialog")
         }
-
-        user.recognizedBirds.add(Bird("Canario"))
-        user.recognizedBirds.add(Bird("Cuervo"))
-        user.recognizedBirds.add(Bird("Colibrí"))
-        user.recognizedBirds.add(Bird("Paloma"))
-        user.recognizedBirds.add(Bird("Murciélago"))
-        user.recognizedBirds.add(Bird("Otro pájaro"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-        user.recognizedBirds.add(Bird("canario"))
-
         birdsRVAdapter.notifyDataSetChanged()
     }
 

@@ -7,13 +7,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.storage.FirebaseStorage
 import com.sophiadiagrams.avedex.R
 import com.sophiadiagrams.avedex.lib.models.Bird
 import com.squareup.picasso.Picasso
 
+
 class BirdsRVAdapter(
-    private val birdList: List<Bird>, private val uid: String, private val storage: FirebaseStorage
+    private val birdList: List<Bird>, private val uid: String
 ) : RecyclerView.Adapter<BirdsRVAdapter.BirdViewHolder>() {
 
     var onItemClick: ((Bird) -> Unit)? = null
@@ -26,15 +26,13 @@ class BirdsRVAdapter(
 
     override fun onBindViewHolder(holder: BirdViewHolder, position: Int) {
         holder.birdNameTV.text = birdList[position].name
-//        storage.reference.child("$uid/${birdList[position].name}").downloadUrl.addOnCompleteListener {
-//            if (it.isSuccessful)
-//                Picasso.get()
-//                    .load(it.result)
-//                    .placeholder(R.drawable.ic_bird).into(holder.birdIV)
-//        }
-        Picasso.get()
-            .load("https://firebasestorage.googleapis.com/v0/b/avedex-1915b.appspot.com/o/028.jpg?alt=media&token=5a28992c-5ec8-4d98-b167-90d211a72f0f")
-            .placeholder(R.drawable.ic_bird).into(holder.birdIV)
+        val imageUrl = "https://avedex.bepi.tech/birds/${birdList[position].name}.jpg"
+        if (birdList[position].user == null) {
+            holder.birdIV.setPadding(20, 20, 20, 20)
+            holder.birdIV.setImageResource(R.drawable.ic_questionmark)
+        } else
+            Picasso.get().load(imageUrl)
+                .placeholder(R.drawable.ic_bird).into(holder.birdIV)
     }
 
     override fun getItemCount(): Int {

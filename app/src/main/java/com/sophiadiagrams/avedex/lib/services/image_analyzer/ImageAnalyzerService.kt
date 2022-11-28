@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import com.sophiadiagrams.avedex.lib.services.retrofit.BirdsResponse
 import com.sophiadiagrams.avedex.lib.services.retrofit.RetrofitService
-import com.sophiadiagrams.avedex.ml.BirdsClassifier
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
 
