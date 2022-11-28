@@ -68,7 +68,8 @@ class LoginFragment : Fragment() {
             btnLogin.setOnClickListener { handleLogin() }
             btnGoogleLogin.setOnClickListener { handleGoogleLogin() }
             btnSignUp.setOnClickListener { findNavController().navigate(R.id.action_loginFragment_to_signUpFragment) }
-            btnPasswordRecovery.setOnClickListener { findNavController().navigate(R.id.action_loginFragment_to_passwordRecoveryFragment) }
+            btnPasswordRecovery.isEnabled=false
+        //btnPasswordRecovery.setOnClickListener { findNavController().navigate(R.id.action_loginFragment_to_passwordRecoveryFragment) }
         }
     }
 

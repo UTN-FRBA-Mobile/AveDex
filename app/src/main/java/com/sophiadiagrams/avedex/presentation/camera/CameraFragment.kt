@@ -100,7 +100,6 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Está acá y no en el onCreate porque necesita que el contexto esté inicializado
         ia = ImageAnalyzerService(mContext)
         getUser(view)
@@ -190,6 +189,8 @@ class CameraFragment : Fragment() {
         popup.menu.getItem(2).setOnMenuItemClickListener {
             fb.auth.signOut()
             activity?.onBackPressedDispatcher?.onBackPressed()
+            Navigation.findNavController(binding.root)
+                .navigate(R.id.loginFragment)
             true
         }
 
