@@ -116,8 +116,8 @@ class ImageAnalyzerService(val context: Context) {
             val input = TensorImage.fromBitmap(bitmap)
             val outputs = model.process(input)
             val probabilities = outputs.probabilityAsCategoryList
+            recognizedBird = probabilities.maxBy { a -> a.score }.label
             model.close()
-            recognizedBird = probabilities.maxBy { a -> a.score }.displayName
         }
         return retrofit.postBirdsData(recognizedBird)
     }
